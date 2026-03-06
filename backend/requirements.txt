@@ -9,5 +9,5 @@ python-multipart==0.0.6
 twilio==8.10.3
 httpx==0.25.2
 slowapi==0.1.9
-mongomock-motor==0.0.21
 email-validator==2.1.0
+pymongo==4.6.1
