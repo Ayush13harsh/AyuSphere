@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="sphere" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444"/>
+      <stop offset="50%" style="stop-color:#f43f5e"/>
+      <stop offset="100%" style="stop-color:#ec4899"/>
+    </linearGradient>
+    <linearGradient id="cross" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#fce7f3"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Outer ring -->
+  <circle cx="60" cy="60" r="56" fill="none" stroke="url(#sphere)" stroke-width="3" opacity="0.3"/>
+  <!-- Main sphere -->
+  <circle cx="60" cy="60" r="46" fill="url(#sphere)" filter="url(#glow)"/>
+  <!-- Shine highlight -->
+  <ellipse cx="48" cy="44" rx="18" ry="14" fill="white" opacity="0.15"/>
+  <!-- Globe latitude lines -->
+  <ellipse cx="60" cy="60" rx="46" ry="20" fill="none" stroke="white" stroke-width="1.5" opacity="0.2"/>
+  <ellipse cx="60" cy="60" rx="46" ry="35" fill="none" stroke="white" stroke-width="1.5" opacity="0.15"/>
+  <!-- Globe longitude line -->
+  <ellipse cx="60" cy="60" rx="20" ry="46" fill="none" stroke="white" stroke-width="1.5" opacity="0.2"/>
+  <!-- Medical cross -->
+  <rect x="50" y="36" width="20" height="48" rx="5" fill="url(#cross)" opacity="0.95"/>
+  <rect x="36" y="50" width="48" height="20" rx="5" fill="url(#cross)" opacity="0.95"/>
+  <!-- Heartbeat line across cross -->
+  <polyline points="38,60 48,60 52,45 56,72 60,55 64,65 68,58 72,60 82,60" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
