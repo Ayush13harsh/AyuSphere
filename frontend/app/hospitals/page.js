@@ -32,7 +32,7 @@ export default function Hospitals() {
 
             try {
                 // Ensure we use the correct backend URL
-                let API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
+                let API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1').trim();
                 if (typeof window !== 'undefined' &&
                     window.location.hostname !== 'localhost' &&
                     window.location.hostname !== '127.0.0.1') {
