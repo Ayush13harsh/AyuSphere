@@ -50,7 +50,7 @@ export default function Profile() {
         setError('');
 
         try {
-            await fetchAPI('/auth/account', {
+            await fetchAPI('/api/v1/auth/account', {
                 method: 'DELETE'
             });
 
