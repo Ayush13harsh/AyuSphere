@@ -1,4 +1,4 @@
-let RAW_API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1').trim();
+let RAW_API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1').replace(/\\n/g, '').trim();
 
 // Defensive check: If deployed to Vercel/production but NEXT_PUBLIC_API_URL is accidentally set to localhost, force the production URL.
 if (typeof window !== 'undefined' &&
@@ -104,7 +104,9 @@ export async function fetchAPI(endpoint, options = {}) {
         }
 
         return data;
+        return data;
     } catch (error) {
+        console.error("[fetchAPI] EXCEPTION CAUGHT:", error.message, error.stack);
         throw error;
     }
 }

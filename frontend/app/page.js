@@ -25,7 +25,7 @@ function HomeContent() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  let API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1').trim();
+  let API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1').replace(/\\n/g, '').trim();
 
   if (typeof window !== 'undefined' &&
     window.location.hostname !== 'localhost' &&
