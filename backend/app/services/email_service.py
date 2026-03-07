@@ -38,7 +38,8 @@ The AyuSphere Team
     msg['To'] = to_email
 
     try:
-        with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
+        # Add a timeout so the server doesn't hang indefinitely. Default is no timeout.
+        with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT, timeout=5) as server:
             server.starttls()
             server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
             server.send_message(msg)
