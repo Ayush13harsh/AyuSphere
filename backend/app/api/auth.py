@@ -19,6 +19,16 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             detail="Could not validate credentials or access token expired",
             headers={"WWW-Authenticate": "Bearer"},
         )
+        
+    # Strictly verify the user still exists in the database
+    user = await db.db.users.find_one({"_id": ObjectId(payload["user_id"])})
+    if not user:
+        raise HTTPException(
+             status_code=status.HTTP_401_UNAUTHORIZED,
+             detail="User account no longer exists",
+             headers={"WWW-Authenticate": "Bearer"},
+        )
+        
     return payload
 
 @router.post("/signup", status_code=status.HTTP_200_OK)
@@ -120,6 +130,11 @@ async def refresh_token(request: Request):
     
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+        
+    # Prevent deleted users from minting new tokens
+    user = await db.db.users.find_one({"_id": ObjectId(payload["user_id"])})
+    if not user:
+        raise HTTPException(status_code=401, detail="User account no longer exists")
         
     access_token = create_access_token(data={"sub": payload["email"], "user_id": payload["user_id"]})
     new_refresh = create_refresh_token(data={"sub": payload["email"], "user_id": payload["user_id"]})
