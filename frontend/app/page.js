@@ -1,10 +1,19 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from './contexts/AuthContext';
+import { useSearchParams } from 'next/navigation';
 
-export default function Home() {
-  const [authMode, setAuthMode] = useState('login'); // login | signup | forgot
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
+  const [authMode, setAuthMode] = useState(initialMode); // login | signup | forgot
   const [isOtpSent, setIsOtpSent] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('mode') === 'signup') {
+      setAuthMode('signup');
+    }
+  }, [searchParams]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -333,5 +342,13 @@ export default function Home() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
