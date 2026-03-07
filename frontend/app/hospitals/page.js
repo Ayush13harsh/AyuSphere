@@ -32,7 +32,15 @@ export default function Hospitals() {
 
             try {
                 // Ensure we use the correct backend URL
-                const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
+                let API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
+                if (typeof window !== 'undefined' &&
+                    window.location.hostname !== 'localhost' &&
+                    window.location.hostname !== '127.0.0.1') {
+                    if (API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1')) {
+                        API_BASE = 'https://ayusphere-backend.onrender.com/api/v1';
+                    }
+                }
+                API_BASE = API_BASE.replace(/\/+$/, '');
 
                 // For Google Maps Places API via our backend proxy
                 const response = await fetch(`${API_BASE}/hospitals?lat=${currentLoc.lat}&lng=${currentLoc.lng}`);

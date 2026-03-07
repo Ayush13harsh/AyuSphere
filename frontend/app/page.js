@@ -25,7 +25,17 @@ function HomeContent() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
+  let API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
+
+  if (typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1') {
+    if (API_URL.includes('localhost') || API_URL.includes('127.0.0.1')) {
+      API_URL = 'https://ayusphere-backend.onrender.com/api/v1';
+    }
+  }
+
+  API_URL = API_URL.replace(/\/+$/, '');
 
   const resetState = (mode) => {
     setAuthMode(mode);

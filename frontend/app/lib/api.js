@@ -1,4 +1,14 @@
-const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
+let RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
+
+// Defensive check: If deployed to Vercel/production but NEXT_PUBLIC_API_URL is accidentally set to localhost, force the production URL.
+if (typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1') {
+    if (RAW_API_URL.includes('localhost') || RAW_API_URL.includes('127.0.0.1')) {
+        RAW_API_URL = 'https://ayusphere-backend.onrender.com/api/v1';
+    }
+}
+
 const API_URL = RAW_API_URL.replace(/\/+$/, '');
 
 let isRefreshing = false;
