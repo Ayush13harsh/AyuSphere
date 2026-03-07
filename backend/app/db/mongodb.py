@@ -1,6 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.config import settings
 import logging
+from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class InMemoryCollection:
 
     async def insert_one(self, doc):
         self._counter += 1
-        doc["_id"] = str(self._counter)
+        doc["_id"] = ObjectId()
         self._data.append(doc.copy())
         class Result:
             inserted_id = doc["_id"]
@@ -53,7 +54,7 @@ class InMemoryCollection:
                 return doc.copy()
         return None
 
-    async def find(self, query=None):
+    def find(self, query=None):
         return InMemoryCursor(self._data, query)
 
     async def update_one(self, query, update, upsert=False):
