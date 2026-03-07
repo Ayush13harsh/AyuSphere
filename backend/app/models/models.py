@@ -6,6 +6,19 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6)
 
+class VerifySignupRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    password: str = Field(..., min_length=6)
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str = Field(..., min_length=6)
+
 class UserResponse(BaseModel):
     id: str = Field(alias="_id")
     email: str
