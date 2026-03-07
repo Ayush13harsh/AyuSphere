@@ -50,9 +50,16 @@ export default function Profile() {
         setError('');
 
         try {
-            await fetchAPI('/auth/account', {
+            const data = await fetchAPI('/auth/debug-account', {
                 method: 'DELETE'
             });
+
+            if (data && data.status === 'exception') {
+                console.error("BACKEND TRACEBACK:", data.traceback);
+                setError(`BACKEND CRASH: ${data.error} \n\n ${data.traceback}`);
+                setIsDeleting(false);
+                return;
+            }
 
             // Clear local storage tokens and force a hard redirect to clear all React state
             localStorage.removeItem('access_token');
