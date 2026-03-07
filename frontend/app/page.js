@@ -25,7 +25,7 @@ function HomeContent() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
 
   const resetState = (mode) => {
     setAuthMode(mode);

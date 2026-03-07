@@ -1,4 +1,4 @@
-const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
 const API_URL = RAW_API_URL.replace(/\/+$/, '');
 
 let isRefreshing = false;

@@ -31,8 +31,10 @@ export default function Hospitals() {
             setUserLocation(currentLoc);
 
             try {
-                // Use process.env.NEXT_PUBLIC_API_URL or full default path to avoid hardcoded localhost
-                const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+                // Ensure we use the correct backend URL
+                const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1';
+
+                // For Google Maps Places API via our backend proxy
                 const response = await fetch(`${API_BASE}/hospitals?lat=${currentLoc.lat}&lng=${currentLoc.lng}`);
                 if (!response.ok) throw new Error("Server returned " + response.status);
                 const data = await response.json();
