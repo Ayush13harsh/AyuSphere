@@ -129,3 +129,28 @@ async def refresh_token(request: Request):
 @router.get("/me")
 async def get_me(current_user: dict = Depends(get_current_user)):
     return current_user
+
+@router.delete("/account", status_code=status.HTTP_200_OK)
+async def delete_account(current_user: dict = Depends(get_current_user)):
+    user_id_str = current_user["user_id"]
+    email = current_user["sub"]
+    
+    # 1. Delete the user's profile
+    await db.db.profiles.delete_one({"user_id": user_id_str})
+    
+    # 2. Delete the user's emergency contacts
+    await db.db.contacts.delete_many({"user_id": user_id_str})
+    
+    # 3. Delete the user's SOS incidents
+    await db.db.incidents.delete_many({"user_id": user_id_str})
+    
+    # 4. Clean up any pending OTPs for the user
+    await db.db.users_otp.delete_many({"email": email})
+    
+    # 5. Delete the actual user record
+    result = await db.db.users.delete_one({"_id": ObjectId(user_id_str)})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    return {"message": "Account and all associated data successfully deleted."}
