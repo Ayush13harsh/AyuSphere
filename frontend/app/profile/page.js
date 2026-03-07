@@ -54,10 +54,10 @@ export default function Profile() {
                 method: 'DELETE'
             });
 
-            // Clear local storage tokens and redirect
-            localStorage.removeItem('token');
+            // Clear local storage tokens and force a hard redirect to clear all React state
+            localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
-            router.push('/');
+            window.location.href = '/?mode=signup';
         } catch (err) {
             setError(err.message || "Failed to delete account");
             setIsDeleting(false);
