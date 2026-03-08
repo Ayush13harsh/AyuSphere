@@ -16,6 +16,7 @@ async def get_contacts(current_user: dict = Depends(get_current_user)):
 @router.post("/")
 async def add_contact(contact: ContactCreate, current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
+    contact.phone = contact.phone.strip()
     
     # Check if phone number already exists for this user
     existing = await db.db.contacts.find_one({"user_id": user_id, "phone": contact.phone})
@@ -23,6 +24,7 @@ async def add_contact(contact: ContactCreate, current_user: dict = Depends(get_c
         raise HTTPException(status_code=400, detail="A contact with this phone number already exists.")
         
     contact_dict = contact.model_dump()
+    contact_dict["phone"] = contact.phone
     contact_dict["user_id"] = user_id
     result = await db.db.contacts.insert_one(contact_dict)
     contact_dict["_id"] = str(result.inserted_id)
@@ -31,6 +33,7 @@ async def add_contact(contact: ContactCreate, current_user: dict = Depends(get_c
 @router.put("/{contact_id}")
 async def update_contact(contact_id: str, contact: ContactCreate, current_user: dict = Depends(get_current_user)):
     user_id = current_user["user_id"]
+    contact.phone = contact.phone.strip()
     
     # Check if another contact (different ID) has this phone number
     existing = await db.db.contacts.find_one({
@@ -42,9 +45,12 @@ async def update_contact(contact_id: str, contact: ContactCreate, current_user: 
     if existing:
         raise HTTPException(status_code=400, detail="Another contact with this phone number already exists.")
         
+    contact_dict = contact.model_dump()
+    contact_dict["phone"] = contact.phone
+    
     result = await db.db.contacts.update_one(
         {"_id": ObjectId(contact_id), "user_id": user_id},
-        {"$set": contact.model_dump()}
+        {"$set": contact_dict}
     )
     
     if result.matched_count == 0:
