@@ -10,6 +10,7 @@ export default function Contacts() {
     const [relationship, setRelationship] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [editingId, setEditingId] = useState(null);
 
     const loadContacts = async () => {
         try {
@@ -22,21 +23,45 @@ export default function Contacts() {
 
     useEffect(() => { loadContacts(); }, []);
 
-    const handleAdd = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
         try {
-            await fetchAPI('/contacts/', {
-                method: 'POST',
-                body: JSON.stringify({ name, phone, relationship: relationship || 'other' })
-            });
-            setSuccess('Contact added!');
-            setName(''); setPhone(''); setRelationship('');
+            if (editingId) {
+                await fetchAPI(`/contacts/${editingId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ name, phone, relationship: relationship || 'other' })
+                });
+                setSuccess('Contact updated successfully!');
+            } else {
+                await fetchAPI('/contacts/', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, phone, relationship: relationship || 'other' })
+                });
+                setSuccess('Contact added successfully!');
+            }
+            setName(''); setPhone(''); setRelationship(''); setEditingId(null);
             loadContacts();
         } catch (err) {
             setError(err.message);
         }
+    };
+
+    const handleEdit = (c) => {
+        setName(c.name);
+        setPhone(c.phone);
+        setRelationship(c.relationship || '');
+        setEditingId(c._id);
+        setError('');
+        setSuccess('');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const cancelEdit = () => {
+        setName(''); setPhone(''); setRelationship(''); setEditingId(null);
+        setError('');
+        setSuccess('');
     };
 
     const handleDelete = async (id) => {
@@ -54,8 +79,8 @@ export default function Contacts() {
             {success && <div className="alert alert-success">{success}</div>}
 
             <div className="card">
-                <h3 style={{ marginBottom: '1rem' }}>Add Contact</h3>
-                <form onSubmit={handleAdd}>
+                <h3 style={{ marginBottom: '1rem' }}>{editingId ? "Update Contact" : "Add Contact"}</h3>
+                <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label>Name</label>
                         <input className="form-control" value={name} onChange={e => setName(e.target.value)} required />
@@ -68,7 +93,12 @@ export default function Contacts() {
                         <label>Relationship</label>
                         <input className="form-control" value={relationship} onChange={e => setRelationship(e.target.value)} placeholder="parent, spouse, friend..." />
                     </div>
-                    <button type="submit" className="btn btn-primary">Add Contact</button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button type="submit" className="btn btn-primary">{editingId ? "Update Contact" : "Add Contact"}</button>
+                        {editingId && (
+                            <button type="button" onClick={cancelEdit} className="btn btn-outline">Cancel</button>
+                        )}
+                    </div>
                 </form>
             </div>
 
@@ -82,9 +112,14 @@ export default function Contacts() {
                             <h3>{c.name}</h3>
                             <p>{c.phone} · {c.relationship}</p>
                         </div>
-                        <button onClick={() => handleDelete(c._id)} style={{ background: 'none', border: 'none', color: 'var(--primary-red)', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}>
-                            Delete
-                        </button>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button onClick={() => handleEdit(c)} style={{ background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}>
+                                Edit
+                            </button>
+                            <button onClick={() => handleDelete(c._id)} style={{ background: 'none', border: 'none', color: 'var(--primary-red)', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}>
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 ))
             )}
