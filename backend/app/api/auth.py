@@ -148,7 +148,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 @router.delete("/account", status_code=status.HTTP_200_OK)
 async def delete_account(current_user: dict = Depends(get_current_user)):
     user_id_str = current_user["user_id"]
-    email = current_user["sub"]
+    email = current_user["email"]
     
     # 1. Delete the user's profile
     await db.db.profiles.delete_one({"user_id": user_id_str})
@@ -170,23 +170,4 @@ async def delete_account(current_user: dict = Depends(get_current_user)):
         
     return {"message": "Account and all associated data successfully deleted."}
 
-@router.delete("/debug-account", status_code=status.HTTP_200_OK)
-async def debug_account(current_user: dict = Depends(get_current_user)):
-    import traceback
-    try:
-        user_id_str = current_user["user_id"]
-        email = current_user["sub"]
-        print("Starting deletion for:", email)
-        
-        await db.db.profiles.delete_one({"user_id": user_id_str})
-        await db.db.contacts.delete_many({"user_id": user_id_str})
-        await db.db.incidents.delete_many({"user_id": user_id_str})
-        await db.db.users_otp.delete_many({"email": email})
-        result = await db.db.users.delete_one({"_id": ObjectId(user_id_str)})
-        
-        if result.deleted_count == 0:
-            return {"status": "User not found"}
-            
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "exception", "error": str(e), "traceback": traceback.format_exc()}
+
