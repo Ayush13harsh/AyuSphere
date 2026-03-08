@@ -168,7 +168,7 @@ body::after {
 
 header {
   background: var(--white);
-  padding: 0.75rem 1.25rem;
+  padding: 0.5rem 1.25rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   display: flex;
   justify-content: space-between;
@@ -193,7 +193,7 @@ header h1 {
 
 main {
   flex: 1;
-  padding: 1.5rem;
+  padding: 0.75rem 1.5rem 1.5rem 1.5rem;
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
@@ -327,13 +327,13 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2.5rem 0 4rem 0;
+  padding: 1.25rem 0 2rem 0;
   position: relative;
 }
 
 .sos-button {
-  width: 150px;
-  height: 150px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #ff6b6b, var(--primary-red), #b91c1c);
   color: white;
@@ -421,8 +421,8 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 1.5rem 1rem;
+  gap: 8px;
+  padding: 1rem 0.5rem;
   text-decoration: none;
   color: var(--text-dark);
   font-weight: 700;
@@ -449,9 +449,9 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   background: var(--bg-red-light);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   transition: all 0.35s ease;
@@ -463,8 +463,8 @@ main {
 }
 
 .action-card svg {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   fill: var(--primary-red);
   transition: all 0.35s ease;
 }
@@ -474,8 +474,8 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
-  margin-bottom: 0.75rem;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .list-content h3 { font-size: 1rem; }
@@ -489,7 +489,7 @@ main {
   justify-content: space-around;
   background: var(--white);
   border-top: 1px solid var(--border);
-  padding: 0.6rem 0 0.7rem 0;
+  padding: 0.4rem 0 0.5rem 0;
   position: sticky;
   bottom: 0;
   z-index: 100;
@@ -505,13 +505,13 @@ main {
   font-weight: 600;
   color: var(--text-light);
   text-decoration: none;
-  padding: 6px 16px;
+  padding: 4px 12px;
   transition: all 0.25s;
   gap: 3px;
   border-radius: 12px;
 }
 
-.nav-item svg { width: 26px; height: 26px; fill: currentColor; transition: all 0.25s ease; }
+.nav-item svg { width: 22px; height: 22px; fill: currentColor; transition: all 0.25s ease; }
 
 .nav-item.active { 
   color: var(--primary-red); 
