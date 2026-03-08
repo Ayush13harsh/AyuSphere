@@ -86,8 +86,19 @@ export default function Contacts() {
                         <input className="form-control" value={name} onChange={e => setName(e.target.value)} required />
                     </div>
                     <div className="form-group">
-                        <label>Phone Number</label>
-                        <input className="form-control" value={phone} onChange={e => setPhone(e.target.value)} required />
+                        <label>Phone Number (10 Digits)</label>
+                        <input
+                            className="form-control"
+                            type="tel"
+                            pattern="[0-9]{10}"
+                            maxLength="10"
+                            minLength="10"
+                            title="Please enter exactly 10 digits"
+                            value={phone}
+                            onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+                            required
+                            placeholder="e.g. 9876543210"
+                        />
                     </div>
                     <div className="form-group">
                         <label>Relationship</label>

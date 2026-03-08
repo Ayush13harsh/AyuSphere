@@ -33,7 +33,7 @@ class Token(BaseModel):
 
 class ContactCreate(BaseModel):
     name: str
-    phone: str
+    phone: str = Field(..., pattern=r"^\d{10}$")
     relationship: str = "other"
 
 class ContactResponse(BaseModel):
