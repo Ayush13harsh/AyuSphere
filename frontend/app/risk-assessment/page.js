@@ -21,7 +21,7 @@ export default function RiskAssessment() {
     });
 
     const commonSymptoms = [
-        "Chest Pain", "Shortness of Breath", "Severe Headache", 
+        "Chest Pain", "Shortness of Breath", "Severe Headache",
         "Dizziness/Fainting", "Unexplained Fatigue", "High Fever"
     ];
 
@@ -46,7 +46,7 @@ export default function RiskAssessment() {
 
     const calculateRisk = () => {
         setLoading(true);
-        
+
         setTimeout(() => {
             // Very simplified mock heuristic for demonstration purposes
             let riskScore = 0;
@@ -165,7 +165,7 @@ export default function RiskAssessment() {
                     <h3 style={{ fontSize: '1rem', color: 'var(--text-dark)', marginBottom: '0.8rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Current Symptoms</h3>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '1.5rem' }}>
                         {commonSymptoms.map(sym => (
-                            <button 
+                            <button
                                 key={sym} type="button" onClick={() => toggleSymptom(sym)}
                                 style={{
                                     padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s',
@@ -192,31 +192,31 @@ export default function RiskAssessment() {
                         </label>
                     </div>
 
-                    <button 
-                        onClick={calculateRisk} 
-                        disabled={loading || !formData.age} 
-                        className="btn btn-primary" 
-                        style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', background: 'var(--text-dark)', color: 'white' }}>
-                        {loading ? <span className="loading-spinner" style={{width: '24px', height: '24px'}}></span> : 'Analyze Health Risk'}
+                    <button
+                        onClick={calculateRisk}
+                        disabled={loading || !formData.age}
+                        className="btn btn-primary"
+                        style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', background: 'var(--primary-red)', color: 'white', border: 'none' }}>
+                        {loading ? <span className="loading-spinner" style={{ width: '24px', height: '24px' }}></span> : 'Analyze Health Risk'}
                     </button>
                 </div>
             )}
 
             {step === 2 && result && (
                 <div style={{ animation: 'fade-in 0.5s ease' }}>
-                    
+
                     {/* Massive Gauge Meter Container */}
                     <div className="card" style={{ textAlign: 'center', padding: '3rem 1.5rem', marginBottom: '1.5rem', background: '#1e293b', color: 'white' }}>
                         <h3 style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1rem' }}>Overall Health Risk</h3>
-                        
-                        <div style={{ 
-                            position: 'relative', width: '200px', height: '200px', margin: '0 auto', 
+
+                        <div style={{
+                            position: 'relative', width: '200px', height: '200px', margin: '0 auto',
                             borderRadius: '50%', background: `conic-gradient(${result.color} ${result.score}%, #334155 ${result.score}%)`,
                             display: 'flex', justifyContent: 'center', alignItems: 'center',
                             boxShadow: `0 0 40px ${result.color}40`
                         }}>
-                            <div style={{ 
-                                width: '160px', height: '160px', background: '#1e293b', borderRadius: '50%', 
+                            <div style={{
+                                width: '160px', height: '160px', background: '#1e293b', borderRadius: '50%',
                                 display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                             }}>
                                 <span style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1, color: result.color }}>{Math.round(result.score)}</span>
