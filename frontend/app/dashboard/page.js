@@ -237,8 +237,8 @@ export default function Dashboard() {
                 <button className={`sos-button ${loading ? 'pulse-active' : ''} ${isListening ? 'listening-glow' : ''}`} onClick={handleSOS} disabled={loading}>
                     {loading ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                            <span className="loading-spinner" style={{ width: '28px', height: '28px', borderWidth: '4px', marginBottom: '8px' }}></span>
-                            <span style={{ fontSize: '1rem', fontWeight: 600, letterSpacing: '0px' }}>Sending Alerts...</span>
+                            <span className="loading-spinner" style={{ width: '24px', height: '24px', borderWidth: '3.5px', marginBottom: '6px' }}></span>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 600, letterSpacing: '0px' }}>Alerting...</span>
                         </div>
                     ) : 'SOS'}
                 </button>
