@@ -233,7 +233,7 @@ export default function Dashboard() {
                 </p>
             </div>
 
-            <div className="sos-container" style={{ gap: '1.5rem', paddingBottom: '1.25rem' }}>
+            <div className="sos-container" style={{ gap: '3rem', paddingBottom: '1.25rem' }}>
                 <button className={`sos-button ${loading ? 'pulse-active' : ''} ${isListening ? 'listening-glow' : ''}`} onClick={handleSOS} disabled={loading}>
                     {loading ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -249,23 +249,31 @@ export default function Dashboard() {
                         background: isListening ? '#ef4444' : 'var(--white)',
                         color: isListening ? 'white' : 'var(--text-dark)',
                         border: `2px solid ${isListening ? '#ef4444' : 'var(--border)'}`,
-                        padding: '10px 18px',
+                        padding: '12px 22px',
                         borderRadius: '30px',
                         fontWeight: 700,
-                        fontSize: '0.8rem',
+                        fontSize: '0.85rem',
                         cursor: 'pointer',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '6px',
+                        justifyContent: 'center',
+                        gap: '4px',
                         boxShadow: isListening ? '0 4px 15px rgba(239, 68, 68, 0.4)' : 'var(--shadow-sm)',
                         transition: 'all 0.3s ease',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        minWidth: '160px'
                     }}
                 >
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                        <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
-                    </svg>
-                    {isListening ? 'Voice Active' : 'Enable Voice'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                            <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
+                        </svg>
+                        <span style={{ fontSize: '0.9rem' }}>{isListening ? 'Voice Active' : 'Enable Voice SOS'}</span>
+                    </div>
+                    {!isListening && (
+                        <span style={{ fontSize: '0.7rem', opacity: 0.7, fontWeight: 500 }}>Say "Help" to activate</span>
+                    )}
                 </button>
             </div>
 
