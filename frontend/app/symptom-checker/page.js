@@ -11,7 +11,7 @@ export default function SymptomChecker() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    
+
     // Form State
     const [symptomsText, setSymptomsText] = useState('');
     const [duration, setDuration] = useState('');
@@ -19,14 +19,14 @@ export default function SymptomChecker() {
     const [fever, setFever] = useState(false);
     const [ageGroup, setAgeGroup] = useState('adult');
     const [existingConditions, setExistingConditions] = useState('');
-    
+
     // Results
     const [result, setResult] = useState(null);
     const [hospitals, setHospitals] = useState([]);
     const [userLocation, setUserLocation] = useState(null);
 
     const presetSymptoms = [
-        "Headache", "Fever", "Cough", "Chest Pain", "Stomach Ache", 
+        "Headache", "Fever", "Cough", "Chest Pain", "Stomach Ache",
         "Nausea", "Vomiting", "Skin Rash", "Joint Pain", "Shortness of breath"
     ];
 
@@ -47,7 +47,7 @@ export default function SymptomChecker() {
             setError("Please describe or select your symptoms.");
             return;
         }
-        
+
         setLoading(true);
         setError('');
 
@@ -64,7 +64,7 @@ export default function SymptomChecker() {
                     existing_conditions: existingConditions
                 })
             });
-            
+
             setResult(analysis);
             setStep(3); // Result Step
 
@@ -83,9 +83,14 @@ export default function SymptomChecker() {
                     } finally {
                         setLoading(false);
                     }
-                }, () => {
-                    setError('Unable to retrieve location to find nearby specialists.');
+                }, (geolocationError) => {
+                    console.error("Geolocation error:", geolocationError);
+                    setError('Unable to retrieve location. Please ensure location services are enabled in your browser/OS to find nearby specialists.');
                     setLoading(false);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 });
             } else {
                 setLoading(false);
@@ -102,7 +107,7 @@ export default function SymptomChecker() {
             <header>
                 <h1>
                     <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
                     </svg>
                     Symptom Checker
                 </h1>
@@ -114,8 +119,8 @@ export default function SymptomChecker() {
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '2rem' }}>
                     {[1, 2, 3].map(i => (
                         <div key={i} style={{
-                            flex: 1, 
-                            height: '6px', 
+                            flex: 1,
+                            height: '6px',
                             borderRadius: '3px',
                             background: step >= i ? 'var(--primary-red)' : 'var(--border)',
                             transition: 'background 0.3s'
@@ -129,10 +134,10 @@ export default function SymptomChecker() {
                 {step === 1 && (
                     <div className="card">
                         <h2 style={{ marginBottom: '1rem', fontSize: '1.25rem' }}>What symptoms are you experiencing?</h2>
-                        
+
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '1.5rem' }}>
                             {presetSymptoms.map(sym => (
-                                <button 
+                                <button
                                     key={sym}
                                     type="button"
                                     onClick={() => toggleSymptom(sym)}
@@ -154,7 +159,7 @@ export default function SymptomChecker() {
 
                         <div className="form-group">
                             <label>Or type your symptoms (natural language)</label>
-                            <textarea 
+                            <textarea
                                 className="form-control"
                                 rows="3"
                                 placeholder="I have been having a severe headache and slight dizziness since yesterday..."
@@ -162,7 +167,7 @@ export default function SymptomChecker() {
                                 onChange={e => setSymptomsText(e.target.value)}
                             ></textarea>
                         </div>
-                        
+
                         <button onClick={handleNext} disabled={!symptomsText.trim()} className="btn btn-primary">Continue</button>
                     </div>
                 )}
@@ -171,7 +176,7 @@ export default function SymptomChecker() {
                 {step === 2 && (
                     <div className="card">
                         <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Additional Details</h2>
-                        
+
                         <div className="form-group">
                             <label>How long have you had these symptoms?</label>
                             <select className="form-control" value={duration} onChange={e => setDuration(e.target.value)}>
@@ -185,12 +190,12 @@ export default function SymptomChecker() {
 
                         <div className="form-group">
                             <label>Pain Level (1-10): {painLevel}</label>
-                            <input 
-                                type="range" 
-                                min="1" max="10" 
-                                value={painLevel} 
+                            <input
+                                type="range"
+                                min="1" max="10"
+                                value={painLevel}
                                 onChange={e => setPainLevel(parseInt(e.target.value))}
-                                style={{ width: '100%', accentColor: 'var(--primary-red)' }} 
+                                style={{ width: '100%', accentColor: 'var(--primary-red)' }}
                             />
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-light)', marginTop: '4px' }}>
                                 <span>1 (Mild)</span>
@@ -217,7 +222,7 @@ export default function SymptomChecker() {
                         <div style={{ display: 'flex', gap: '10px', marginTop: '2rem' }}>
                             <button onClick={handleBack} className="btn btn-outline" style={{ flex: 1 }}>Back</button>
                             <button onClick={handleSubmit} disabled={loading} className="btn btn-primary" style={{ flex: 2 }}>
-                                {loading ? <span className="loading-spinner" style={{width: '20px', height: '20px', borderWidth: '3px'}}></span> : 'Analyze Symptoms'}
+                                {loading ? <span className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '3px' }}></span> : 'Analyze Symptoms'}
                             </button>
                         </div>
                     </div>
@@ -228,7 +233,7 @@ export default function SymptomChecker() {
                     <div className="results-container">
                         <div className="alert alert-error" style={{ background: '#FFFBEB', color: '#B45309', border: '1px solid #FEF3C7', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
                             <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z"/></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99zM11 16h2v2h-2zm0-6h2v4h-2z" /></svg>
                                 Disclaimer
                             </strong>
                             {result.disclaimer}
@@ -239,21 +244,21 @@ export default function SymptomChecker() {
                             <h2 style={{ color: 'var(--primary-red)', marginBottom: '1rem', fontSize: '1.4rem' }}>
                                 {result.possible_conditions.join(' / ')}
                             </h2>
-                            
+
                             <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '1rem 0' }} />
-                            
+
                             <h3 style={{ color: 'var(--text-light)', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Recommended Specialist</h3>
                             <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary-red)"><path d="M18 17h-2v-1h-2v1h-2v-1h-2v1h-2v-1H8v1H6v-2h12v2zm-6-8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm3.84 0c-.81 1.2-2.18 2-3.84 2s-3.03-.8-3.84-2H6v4h12V9h-2.16zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="var(--primary-red)"><path d="M18 17h-2v-1h-2v1h-2v-1h-2v1h-2v-1H8v1H6v-2h12v2zm-6-8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm3.84 0c-.81 1.2-2.18 2-3.84 2s-3.03-.8-3.84-2H6v4h12V9h-2.16zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" /></svg>
                                 {result.recommended_specialist}
                             </h2>
                         </div>
 
                         <h3 style={{ margin: '2rem 0 1rem 0' }}>Nearby Specialists</h3>
-                        
+
                         {loading && !hospitals.length ? (
                             <div style={{ textAlign: 'center', padding: '2rem' }}>
-                                <span className="loading-spinner" style={{width: '30px', height: '30px', borderWidth: '4px', borderColor: 'var(--primary-red)'}}></span>
+                                <span className="loading-spinner" style={{ width: '30px', height: '30px', borderWidth: '4px', borderColor: 'var(--primary-red)' }}></span>
                                 <p style={{ marginTop: '1rem', color: 'var(--text-light)' }}>Locating nearby {result.recommended_specialist}s...</p>
                             </div>
                         ) : (
@@ -263,7 +268,7 @@ export default function SymptomChecker() {
                                         <LeafletMap userLocation={userLocation} hospitals={hospitals} />
                                     </div>
                                 )}
-                                
+
                                 {hospitals.length === 0 ? (
                                     <p style={{ textAlign: 'center', color: 'var(--text-light)' }}>No matching specialists found nearby.</p>
                                 ) : (
@@ -285,7 +290,7 @@ export default function SymptomChecker() {
                                 )}
                             </>
                         )}
-                        
+
                         <button onClick={() => { setStep(1); setSymptomsText(''); setResult(null); }} className="btn btn-outline" style={{ marginTop: '1rem' }}>Start New Check</button>
                     </div>
                 )}
