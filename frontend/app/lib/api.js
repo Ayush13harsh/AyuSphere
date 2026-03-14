@@ -33,11 +33,12 @@ export async function fetchWithRetry(url, options = {}, retries = 2, baseDelay =
  * Returns a user-friendly error message for network failures,
  * distinguishing between offline (no internet) and server-unreachable scenarios.
  */
-export function getNetworkErrorMessage() {
+export function getNetworkErrorMessage(err) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
         return 'You appear to be offline. Please check your internet connection and try again.';
     }
-    return 'Unable to reach the server — it may be starting up. Please try again in a moment.';
+    const suffix = err ? ` (${err.message})` : '';
+    return 'Unable to reach the server — it may be starting up. Please try again in a moment.' + suffix;
 }
 
 let isRefreshing = false;
@@ -134,7 +135,12 @@ export async function fetchAPI(endpoint, options = {}) {
 
         return data;
     } catch (error) {
-        console.error("[fetchAPI] EXCEPTION CAUGHT:", error.message, error.stack);
+        console.error("[fetchAPI] EXCEPTION CAUGHT:", {
+            endpoint,
+            message: error.message,
+            stack: error.stack,
+            error
+        });
         throw error;
     }
 }

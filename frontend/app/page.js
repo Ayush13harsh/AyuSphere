@@ -135,8 +135,9 @@ function HomeContent() {
         }
       }
     } catch (err) {
+      console.error("[handleSubmit] ERROR:", err);
       if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError(getNetworkErrorMessage());
+        setError(getNetworkErrorMessage(err));
       } else {
         setError(err.message);
       }
