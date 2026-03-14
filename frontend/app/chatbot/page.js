@@ -47,7 +47,7 @@ export default function Chatbot() {
         } catch (error) {
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
-                text: getNetworkErrorMessage()
+                text: "I'm having trouble connecting to my medical database. " + getNetworkErrorMessage()
             }]);
         } finally {
             setLoading(false);
