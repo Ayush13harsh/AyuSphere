@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.api.auth import get_current_user
 from app.db.mongodb import db
 from app.services.sms_service import sms_service
-from app.models.models import IncidentLog
+from app.models.models import IncidentLog, SOSRequest
 from datetime import datetime
 import logging
 
@@ -10,13 +10,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/trigger")
-async def trigger_sos(location: dict, current_user: dict = Depends(get_current_user)):
-    lat = location.get("lat")
-    lng = location.get("lng")
+async def trigger_sos(location: SOSRequest, current_user: dict = Depends(get_current_user)):
+    lat = location.lat
+    lng = location.lng
     
-    if not lat or not lng:
-        raise HTTPException(status_code=400, detail="Latitude and Longitude are required")
-        
     maps_link = f"https://www.google.com/maps?q={lat},{lng}"
     
     # Log the incident to DB

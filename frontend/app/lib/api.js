@@ -104,7 +104,6 @@ export async function fetchAPI(endpoint, options = {}) {
         }
 
         return data;
-        return data;
     } catch (error) {
         console.error("[fetchAPI] EXCEPTION CAUGHT:", error.message, error.stack);
         throw error;

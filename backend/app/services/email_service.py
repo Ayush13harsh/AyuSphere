@@ -1,9 +1,12 @@
 import httpx
 from app.core.config import settings
+import logging
 
-def send_otp_email(to_email: str, otp: str, purpose: str = "signup"):
+logger = logging.getLogger(__name__)
+
+async def send_otp_email(to_email: str, otp: str, purpose: str = "signup"):
     if not settings.BREVO_API_KEY:
-        print(f"Skipping email send for {to_email}. BREVO_API_KEY not configured.")
+        logger.info(f"Skipping email send for {to_email}. BREVO_API_KEY not configured.")
         return False
         
     url = "https://api.brevo.com/v3/smtp/email"
@@ -45,14 +48,13 @@ def send_otp_email(to_email: str, otp: str, purpose: str = "signup"):
     }
 
     try:
-        # Use a synchronous HTTP client since this function is synchronous
-        with httpx.Client(timeout=10.0) as client:
-            response = client.post(url, headers=headers, json=payload)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(url, headers=headers, json=payload)
             response.raise_for_status()
-            print(f"Email successfully sent to {to_email} via Brevo HTTP API.")
+            logger.info(f"Email successfully sent to {to_email} via Brevo HTTP API.")
             return True
     except Exception as e:
-        print(f"Failed to send email to {to_email} using Brevo: {str(e)}")
+        logger.error(f"Failed to send email to {to_email} using Brevo: {str(e)}")
         if isinstance(e, httpx.HTTPStatusError):
-            print(f"Response: {e.response.text}")
+            logger.error(f"Response: {e.response.text}")
         return False
