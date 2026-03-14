@@ -9,7 +9,7 @@ if (typeof window !== 'undefined' &&
     }
 }
 
-const API_URL = RAW_API_URL.replace(/\/+$/, '');
+export const API_URL = RAW_API_URL.replace(/\/+$/, '');
 
 let isRefreshing = false;
 let refreshPromise = null;

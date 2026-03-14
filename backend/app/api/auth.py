@@ -51,7 +51,10 @@ async def signup(request: Request, user: UserCreate):
         upsert=True
     )
     
-    await send_otp_email(user.email, otp, "signup")
+    email_sent = await send_otp_email(user.email, otp, "signup")
+    if not email_sent:
+        logger.error(f"Failed to send signup OTP email to: {user.email}")
+        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again later.")
     logger.info(f"Signup OTP sent for email: {user.email}")
     return {"message": "OTP sent to email. Please verify."}
 
@@ -101,7 +104,10 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest):
         upsert=True
     )
     
-    await send_otp_email(data.email, otp, "reset_password")
+    email_sent = await send_otp_email(data.email, otp, "reset_password")
+    if not email_sent:
+        logger.error(f"Failed to send password reset OTP email to: {data.email}")
+        raise HTTPException(status_code=500, detail="Failed to send reset email. Please try again later.")
     logger.info(f"Password reset OTP sent for email: {data.email}")
     return {"message": "If an account exists, an OTP has been sent."}
 

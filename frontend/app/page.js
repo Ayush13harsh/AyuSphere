@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
+import { API_URL } from './lib/api';
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -25,17 +26,14 @@ function HomeContent() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  let API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1').replace(/\\n/g, '').trim();
-
-  if (typeof window !== 'undefined' &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1') {
-    if (API_URL.includes('localhost') || API_URL.includes('127.0.0.1')) {
-      API_URL = 'https://ayusphere-backend.onrender.com/api/v1';
+  const parseResponse = async (res) => {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(text || 'Unexpected server response');
     }
-  }
-
-  API_URL = API_URL.replace(/\/+$/, '');
+  };
 
   const resetState = (mode) => {
     setAuthMode(mode);
@@ -69,7 +67,7 @@ function HomeContent() {
           body: formData
         });
 
-        const data = await res.json();
+        const data = await parseResponse(res);
         if (!res.ok) throw new Error(data.detail || 'Login failed');
 
         login(data.access_token, data.refresh_token);
@@ -82,7 +80,7 @@ function HomeContent() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
           });
-          const data = await res.json();
+          const data = await parseResponse(res);
           if (!res.ok) {
             if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Signup failed');
             throw new Error(data.detail || 'Signup failed');
@@ -97,7 +95,7 @@ function HomeContent() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, otp })
           });
-          const data = await res.json();
+          const data = await parseResponse(res);
           if (!res.ok) {
             if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Verification failed');
             throw new Error(data.detail || 'Verification failed');
@@ -114,7 +112,7 @@ function HomeContent() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
           });
-          const data = await res.json();
+          const data = await parseResponse(res);
           if (!res.ok) throw new Error(data.detail || 'Failed to send reset email');
 
           setIsOtpSent(true);
@@ -126,7 +124,7 @@ function HomeContent() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp, new_password: newPassword })
           });
-          const data = await res.json();
+          const data = await parseResponse(res);
           if (!res.ok) {
             if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Password reset failed');
             throw new Error(data.detail || 'Password reset failed');
@@ -137,7 +135,7 @@ function HomeContent() {
         }
       }
     } catch (err) {
-      if (err.message === 'Failed to fetch') {
+      if (err instanceof TypeError && err.message.includes('fetch')) {
         setError('Unable to connect to the server. Please check your internet connection and try again.');
       } else {
         setError(err.message);
