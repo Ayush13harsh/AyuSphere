@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
-import { API_URL } from './lib/api';
+import { API_URL, fetchWithRetry, getNetworkErrorMessage } from './lib/api';
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -61,7 +61,7 @@ function HomeContent() {
         formData.append('username', email);
         formData.append('password', password);
 
-        const res = await fetch(`${API_URL}/auth/login`, {
+        const res = await fetchWithRetry(`${API_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: formData
@@ -75,7 +75,7 @@ function HomeContent() {
       } else if (authMode === 'signup') {
         if (!isOtpSent) {
           // Step 1: Request OTP
-          const res = await fetch(`${API_URL}/auth/signup`, {
+          const res = await fetchWithRetry(`${API_URL}/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -90,7 +90,7 @@ function HomeContent() {
           setSuccess('OTP sent to your email! (Check spam folder too)');
         } else {
           // Step 2: Verify OTP
-          const res = await fetch(`${API_URL}/auth/verify-signup`, {
+          const res = await fetchWithRetry(`${API_URL}/auth/verify-signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, otp })
@@ -107,7 +107,7 @@ function HomeContent() {
       } else if (authMode === 'forgot') {
         if (!isOtpSent) {
           // Step 1: Request Reset OTP
-          const res = await fetch(`${API_URL}/auth/forgot-password`, {
+          const res = await fetchWithRetry(`${API_URL}/auth/forgot-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
@@ -119,7 +119,7 @@ function HomeContent() {
           setSuccess('If the account exists, an OTP has been sent to your email.');
         } else {
           // Step 2: Reset Password
-          const res = await fetch(`${API_URL}/auth/reset-password`, {
+          const res = await fetchWithRetry(`${API_URL}/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp, new_password: newPassword })
@@ -136,7 +136,7 @@ function HomeContent() {
       }
     } catch (err) {
       if (err instanceof TypeError && err.message.includes('fetch')) {
-        setError('Unable to connect to the server. Please check your internet connection and try again.');
+        setError(getNetworkErrorMessage());
       } else {
         setError(err.message);
       }

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import AppLayout from '../components/AppLayout';
-import { fetchAPI } from '../lib/api';
+import { fetchAPI, getNetworkErrorMessage } from '../lib/api';
 
 export default function Chatbot() {
     const [messages, setMessages] = useState([
@@ -47,7 +47,7 @@ export default function Chatbot() {
         } catch (error) {
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
-                text: "I'm having trouble connecting to my medical database. Please check your connection." 
+                text: "I'm having trouble connecting to my medical database. " + getNetworkErrorMessage()
             }]);
         } finally {
             setLoading(false);
