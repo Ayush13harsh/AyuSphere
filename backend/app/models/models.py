@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 
 
@@ -85,7 +85,7 @@ class IncidentLog(BaseModel):
     user_id: str
     lat: float
     lng: float
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SOSRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
