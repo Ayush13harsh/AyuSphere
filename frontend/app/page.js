@@ -98,7 +98,10 @@ function HomeContent() {
             body: JSON.stringify({ email, password, otp })
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.detail || 'Verification failed');
+          if (!res.ok) {
+            if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Verification failed');
+            throw new Error(data.detail || 'Verification failed');
+          }
 
           setSuccess('Account created and verified!');
           login(data.access_token, data.refresh_token);
@@ -124,14 +127,21 @@ function HomeContent() {
             body: JSON.stringify({ email, otp, new_password: newPassword })
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.detail || 'Password reset failed');
+          if (!res.ok) {
+            if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Password reset failed');
+            throw new Error(data.detail || 'Password reset failed');
+          }
 
           setSuccess('Password updated successfully! Please login.');
           setTimeout(() => resetState('login'), 2000);
         }
       }
     } catch (err) {
-      setError(err.message);
+      if (err.message === 'Failed to fetch') {
+        setError('Unable to connect to the server. Please check your internet connection and try again.');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

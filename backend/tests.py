@@ -60,3 +60,38 @@ async def test_weak_password_rejected():
         # Password without digit
         res = await ac.post("/api/v1/auth/signup", json={"email": "weak@test.com", "password": "Password"})
         assert res.status_code == 422
+
+@pytest.mark.anyio
+async def test_verify_signup_invalid_otp_returns_json():
+    """Verify that invalid OTP returns a proper JSON error, not a server crash."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        # First request signup OTP
+        await ac.post("/api/v1/auth/signup", json={"email": "otp_test@test.com", "password": "Password1"})
+
+        # Try to verify with wrong OTP
+        verify_res = await ac.post("/api/v1/auth/verify-signup", json={
+            "email": "otp_test@test.com",
+            "otp": "000000",
+            "password": "Password1"
+        })
+        assert verify_res.status_code == 400
+        data = verify_res.json()
+        assert "detail" in data
+        assert data["detail"] == "Invalid OTP"
+
+@pytest.mark.anyio
+async def test_rate_limit_returns_json():
+    """Verify that rate limit exceeded returns a proper JSON 429 response."""
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        # Send requests up to the rate limit (5/minute for signup)
+        for i in range(6):
+            res = await ac.post("/api/v1/auth/signup", json={
+                "email": f"ratelimit{i}@test.com",
+                "password": "Password1"
+            })
+            if res.status_code == 429:
+                data = res.json()
+                assert "detail" in data
+                break

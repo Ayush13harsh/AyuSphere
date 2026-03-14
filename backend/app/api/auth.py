@@ -3,14 +3,14 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from app.models.models import UserCreate, UserResponse, Token, VerifySignupRequest, ForgotPasswordRequest, ResetPasswordRequest
 from app.db.mongodb import db
 from app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, verify_token
+from app.core.limiter import limiter
 from app.services.email_service import send_otp_email
 from bson import ObjectId
 import secrets
+import logging
 from datetime import datetime, timedelta, timezone
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
-limiter = Limiter(key_func=get_remote_address)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
@@ -52,16 +52,20 @@ async def signup(request: Request, user: UserCreate):
     )
     
     await send_otp_email(user.email, otp, "signup")
+    logger.info(f"Signup OTP sent for email: {user.email}")
     return {"message": "OTP sent to email. Please verify."}
 
 @router.post("/verify-signup", response_model=Token, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def verify_signup(request: Request, data: VerifySignupRequest):
+    logger.info(f"Verify-signup attempt for email: {data.email}")
     otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "signup"})
     if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
+        logger.warning(f"Invalid OTP for verify-signup: {data.email}")
         raise HTTPException(status_code=400, detail="Invalid OTP")
         
     if otp_record.get("expires_at", datetime.now(timezone.utc)) < datetime.now(timezone.utc):
+        logger.warning(f"Expired OTP for verify-signup: {data.email}")
         raise HTTPException(status_code=400, detail="OTP expired")
         
     existing_user = await db.db.users.find_one({"email": data.email})
@@ -76,6 +80,7 @@ async def verify_signup(request: Request, data: VerifySignupRequest):
     
     access_token = create_access_token(data={"sub": data.email, "user_id": str(result.inserted_id)})
     refresh_token = create_refresh_token(data={"sub": data.email, "user_id": str(result.inserted_id)})
+    logger.info(f"Signup verified and account created for: {data.email}")
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
@@ -84,6 +89,7 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest):
     user = await db.db.users.find_one({"email": data.email})
     if not user:
         # Prevent email enumeration
+        logger.info(f"Forgot-password request for non-existent email: {data.email}")
         return {"message": "If an account exists, an OTP has been sent."}
         
     otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
@@ -96,16 +102,20 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest):
     )
     
     await send_otp_email(data.email, otp, "reset_password")
+    logger.info(f"Password reset OTP sent for email: {data.email}")
     return {"message": "If an account exists, an OTP has been sent."}
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
 @limiter.limit("5/minute")
 async def reset_password(request: Request, data: ResetPasswordRequest):
+    logger.info(f"Reset-password attempt for email: {data.email}")
     otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "reset_password"})
     if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
+        logger.warning(f"Invalid OTP for reset-password: {data.email}")
         raise HTTPException(status_code=400, detail="Invalid OTP")
         
     if otp_record.get("expires_at", datetime.now(timezone.utc)) < datetime.now(timezone.utc):
+        logger.warning(f"Expired OTP for reset-password: {data.email}")
         raise HTTPException(status_code=400, detail="OTP expired")
         
     hashed_password = get_password_hash(data.new_password)
@@ -115,6 +125,7 @@ async def reset_password(request: Request, data: ResetPasswordRequest):
     )
     
     await db.db.users_otp.delete_many({"email": data.email, "purpose": "reset_password"})
+    logger.info(f"Password successfully reset for: {data.email}")
     return {"message": "Password updated successfully."}
 
 @router.post("/login", response_model=Token)
