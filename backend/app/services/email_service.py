@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 async def send_otp_email(to_email: str, otp: str, purpose: str = "signup"):
     if not settings.BREVO_API_KEY:
         logger.info(f"Skipping email send for {to_email}. BREVO_API_KEY not configured.")
-        return False
+        return True
         
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {

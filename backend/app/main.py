@@ -30,14 +30,21 @@ app = FastAPI(title="AyuSphere API", version="2.0.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
+cors_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://ayusphere.vercel.app",
+    "https://ayu-sphere-jade.vercel.app",
+]
+if settings.CORS_ORIGINS:
+    cors_origins.extend(
+        origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://ayusphere.vercel.app",
-        "https://ayu-sphere-jade.vercel.app",
-    ],
+    allow_origins=cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

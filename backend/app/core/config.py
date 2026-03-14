@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     # Email API settings
     BREVO_API_KEY: str = ""
     SMTP_FROM_EMAIL: str = "noreply@ayusphere.com"
+    # CORS settings (comma-separated list of additional allowed origins)
+    CORS_ORIGINS: str = ""
     class Config:
         env_file = ".env"
 
