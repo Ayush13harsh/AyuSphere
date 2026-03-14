@@ -53,46 +53,83 @@ app.add_middleware(
 )
 
 
+def safe_cors_json_response(status_code: int, content: dict, request: Request):
+    """
+    Creates a JSONResponse with explicit CORS headers.
+    This is a fallback for when middleware might be bypassed or fail.
+    """
+    origin = request.headers.get("origin")
+    # Allowed origins list matching CORSMiddleware
+    allowed = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://ayusphere.vercel.app",
+        "https://ayu-sphere-jade.vercel.app",
+    ]
+    
+    headers = {}
+    if origin in allowed:
+        headers["Access-Control-Allow-Origin"] = origin
+    elif origin and (origin.endswith(".vercel.app")):
+        headers["Access-Control-Allow-Origin"] = origin
+    else:
+        # Fallback to the first allowed origin for better compatibility during errors
+        headers["Access-Control-Allow-Origin"] = allowed[0]
+        
+    headers["Access-Control-Allow-Credentials"] = "true"
+    headers["Access-Control-Allow-Methods"] = "*"
+    headers["Access-Control-Allow-Headers"] = "*"
+    
+    return JSONResponse(
+        status_code=status_code,
+        content=content,
+        headers=headers
+    )
+
+
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     logger.warning(f"Rate limit exceeded for {request.client.host if request.client else 'unknown'}: {request.url.path}")
-    return JSONResponse(
+    return safe_cors_json_response(
         status_code=429,
         content={"detail": "Too many requests. Please try again later."},
+        request=request
     )
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger.error(f"Validation error on {request.method} {request.url.path}: {exc}")
-    # Flatten error messages for easier frontend display and ensure JSON serializability
     error_details = []
     for error in exc.errors():
         loc = ".".join(str(l) for l in error.get("loc", []))
         msg = error.get("msg", "Validation error")
         error_details.append(f"{loc}: {msg}")
     
-    return JSONResponse(
+    return safe_cors_json_response(
         status_code=422,
         content={"detail": error_details},
+        request=request
     )
 
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     logger.error(f"HTTP exception on {request.method} {request.url.path}: {exc.detail}")
-    return JSONResponse(
+    return safe_cors_json_response(
         status_code=exc.status_code,
         content={"detail": exc.detail},
+        request=request
     )
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception on {request.method} {request.url.path}: {exc}", exc_info=True)
-    return JSONResponse(
+    return safe_cors_json_response(
         status_code=500,
         content={"detail": "Internal server error"},
+        request=request
     )
 
 

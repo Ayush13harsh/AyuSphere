@@ -10,6 +10,7 @@ if (typeof window !== 'undefined' &&
 }
 
 export const API_URL = RAW_API_URL.replace(/\/+$/, '');
+console.log("[api.js] Resolved API_URL:", API_URL);
 
 /**
  * Fetch with automatic retry on network errors (e.g. server cold-starting on Render).
@@ -38,7 +39,7 @@ export function getNetworkErrorMessage(err) {
         return 'You appear to be offline. Please check your internet connection and try again.';
     }
     const suffix = err ? ` (${err.message})` : '';
-    return 'Unable to reach the server — it may be starting up. Please try again in a moment.' + suffix;
+    return `Unable to reach the server at ${API_URL} — it may be starting up. Please try again in a moment.` + suffix;
 }
 
 let isRefreshing = false;
