@@ -1,10 +1,11 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.db.mongodb import db
+from app.core.config import settings
 from app.api import auth, contacts, profile, sos, hospitals, symptoms, chatbot
 import logging
 
@@ -13,7 +14,20 @@ logger = logging.getLogger(__name__)
 
 limiter = Limiter(key_func=get_remote_address)
 
-app = FastAPI(title="AyuSphere API", version="2.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if settings.SECRET_KEY == "yoursecretkey_changethis_in_production":
+        logger.warning(
+            "WARNING: Using default SECRET_KEY. "
+            "Set a strong, unique SECRET_KEY environment variable before deploying to production."
+        )
+    await db.connect()
+    yield
+    await db.disconnect()
+
+
+app = FastAPI(title="AyuSphere API", version="2.0.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
@@ -37,15 +51,9 @@ app.include_router(sos.router, prefix="/api/v1/sos", tags=["SOS"])
 app.include_router(symptoms.router, prefix="/api/v1/symptoms", tags=["Symptoms"])
 app.include_router(hospitals.router, prefix="/api/v1", tags=["Hospitals"])
 app.include_router(chatbot.router, prefix="/api/v1/chatbot", tags=["Chatbot"])
-@app.on_event("startup")
-async def startup_db_client():
-    await db.connect()
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    await db.disconnect()
 
 @app.get("/health")
 @limiter.limit("10/minute")
-async def health(request):
+async def health(request: Request):
     return {"status": "healthy", "version": "2.0.0"}

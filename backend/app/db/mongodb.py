@@ -20,6 +20,7 @@ class Database:
             await self.db.profiles.create_index("user_id")
             await self.db.contacts.create_index("user_id")
             await self.db.incidents.create_index("user_id")
+            await self.db.users_otp.create_index("email")
             logger.info("Connected to MongoDB successfully")
         except Exception as e:
             logger.warning(f"MongoDB not available: {e}")
@@ -71,14 +72,34 @@ class InMemoryCollection:
             if "$set" in update:
                 new_doc.update(update["$set"])
             await self.insert_one(new_doc)
+        matched = 1 if doc else 0
         class Result:
-            modified_count = 1 if doc else 0
+            modified_count = matched
+            matched_count = matched
         return Result()
 
     async def delete_one(self, query):
         doc = await self.find_one(query)
         if doc:
             self._data = [d for d in self._data if d.get("_id") != doc.get("_id")]
+        count = 1 if doc else 0
+        class Result:
+            deleted_count = count
+        return Result()
+
+    async def delete_many(self, query):
+        before = len(self._data)
+        if query:
+            self._data = [
+                d for d in self._data
+                if not all(d.get(k) == v for k, v in query.items())
+            ]
+        else:
+            self._data = []
+        removed = before - len(self._data)
+        class Result:
+            deleted_count = removed
+        return Result()
 
     async def create_index(self, *args, **kwargs):
         pass

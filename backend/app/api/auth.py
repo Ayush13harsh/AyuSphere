@@ -6,7 +6,11 @@ from app.core.security import get_password_hash, verify_password, create_access_
 from app.services.email_service import send_otp_email
 from bson import ObjectId
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
@@ -32,13 +36,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return payload
 
 @router.post("/signup", status_code=status.HTTP_200_OK)
-async def signup(user: UserCreate):
+@limiter.limit("5/minute")
+async def signup(request: Request, user: UserCreate):
     existing_user = await db.db.users.find_one({"email": user.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
     otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
-    expires_at = datetime.utcnow() + timedelta(minutes=10)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
     
     await db.db.users_otp.update_one(
         {"email": user.email, "purpose": "signup"},
@@ -46,16 +51,17 @@ async def signup(user: UserCreate):
         upsert=True
     )
     
-    send_otp_email(user.email, otp, "signup")
+    await send_otp_email(user.email, otp, "signup")
     return {"message": "OTP sent to email. Please verify."}
 
 @router.post("/verify-signup", response_model=Token, status_code=status.HTTP_201_CREATED)
-async def verify_signup(data: VerifySignupRequest):
+@limiter.limit("5/minute")
+async def verify_signup(request: Request, data: VerifySignupRequest):
     otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "signup"})
-    if not otp_record or otp_record["otp"] != data.otp:
+    if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
         raise HTTPException(status_code=400, detail="Invalid OTP")
         
-    if otp_record.get("expires_at", datetime.utcnow()) < datetime.utcnow():
+    if otp_record.get("expires_at", datetime.now(timezone.utc)) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="OTP expired")
         
     existing_user = await db.db.users.find_one({"email": data.email})
@@ -73,14 +79,15 @@ async def verify_signup(data: VerifySignupRequest):
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
-async def forgot_password(data: ForgotPasswordRequest):
+@limiter.limit("5/minute")
+async def forgot_password(request: Request, data: ForgotPasswordRequest):
     user = await db.db.users.find_one({"email": data.email})
     if not user:
         # Prevent email enumeration
         return {"message": "If an account exists, an OTP has been sent."}
         
     otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
-    expires_at = datetime.utcnow() + timedelta(minutes=10)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
     
     await db.db.users_otp.update_one(
         {"email": data.email, "purpose": "reset_password"},
@@ -88,16 +95,17 @@ async def forgot_password(data: ForgotPasswordRequest):
         upsert=True
     )
     
-    send_otp_email(data.email, otp, "reset_password")
+    await send_otp_email(data.email, otp, "reset_password")
     return {"message": "If an account exists, an OTP has been sent."}
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
-async def reset_password(data: ResetPasswordRequest):
+@limiter.limit("5/minute")
+async def reset_password(request: Request, data: ResetPasswordRequest):
     otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "reset_password"})
-    if not otp_record or otp_record["otp"] != data.otp:
+    if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
         raise HTTPException(status_code=400, detail="Invalid OTP")
         
-    if otp_record.get("expires_at", datetime.utcnow()) < datetime.utcnow():
+    if otp_record.get("expires_at", datetime.now(timezone.utc)) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="OTP expired")
         
     hashed_password = get_password_hash(data.new_password)
@@ -110,7 +118,8 @@ async def reset_password(data: ResetPasswordRequest):
     return {"message": "Password updated successfully."}
 
 @router.post("/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+@limiter.limit("10/minute")
+async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     user = await db.db.users.find_one({"email": form_data.username})
     if not user or not verify_password(form_data.password, user["hashed_password"]):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
