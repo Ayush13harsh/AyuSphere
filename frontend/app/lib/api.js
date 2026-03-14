@@ -11,6 +11,35 @@ if (typeof window !== 'undefined' &&
 
 export const API_URL = RAW_API_URL.replace(/\/+$/, '');
 
+/**
+ * Fetch with automatic retry on network errors (e.g. server cold-starting on Render).
+ * Retries up to `retries` times with exponential backoff starting at `baseDelay` ms.
+ */
+export async function fetchWithRetry(url, options = {}, retries = 2, baseDelay = 3000) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            return await fetch(url, options);
+        } catch (err) {
+            const isLastAttempt = attempt === retries;
+            if (isLastAttempt || !(err instanceof TypeError)) {
+                throw err;
+            }
+            await new Promise(r => setTimeout(r, baseDelay * Math.pow(2, attempt)));
+        }
+    }
+}
+
+/**
+ * Returns a user-friendly error message for network failures,
+ * distinguishing between offline (no internet) and server-unreachable scenarios.
+ */
+export function getNetworkErrorMessage() {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return 'You appear to be offline. Please check your internet connection and try again.';
+    }
+    return 'Unable to reach the server — it may be starting up. Please try again in a moment.';
+}
+
 let isRefreshing = false;
 let refreshPromise = null;
 
@@ -55,7 +84,7 @@ export async function fetchAPI(endpoint, options = {}) {
     }
 
     try {
-        let response = await fetch(`${API_URL}${endpoint}`, {
+        let response = await fetchWithRetry(`${API_URL}${endpoint}`, {
             ...options,
             headers,
         });
@@ -71,7 +100,7 @@ export async function fetchAPI(endpoint, options = {}) {
                 refreshPromise = null;
 
                 headers['Authorization'] = `Bearer ${newToken}`;
-                response = await fetch(`${API_URL}${endpoint}`, {
+                response = await fetchWithRetry(`${API_URL}${endpoint}`, {
                     ...options,
                     headers,
                 });
