@@ -23,8 +23,22 @@ async def lifespan(app: FastAPI):
             "WARNING: Using default SECRET_KEY. "
             "Set a strong, unique SECRET_KEY environment variable before deploying to production."
         )
+    
+    # Heartbeat to monitor if the process is alive during startup
+    import asyncio
+    async def heartbeat():
+        try:
+            while True:
+                logger.info("HEARTBEAT: App is alive and event loop is running.")
+                await asyncio.sleep(10)
+        except asyncio.CancelledError:
+            pass
+            
+    heartbeat_task = asyncio.create_task(heartbeat())
+    
     await db.connect()
     yield
+    heartbeat_task.cancel()
     await db.disconnect()
 
 
@@ -128,7 +142,6 @@ app.include_router(chatbot.router, prefix="/api/v1/chatbot", tags=["Chatbot"])
 
 
 @app.get("/")
-@limiter.limit("10/minute")
 async def root(request: Request):
     return {
         "status": "System Live",
@@ -138,6 +151,5 @@ async def root(request: Request):
 
 
 @app.get("/health")
-@limiter.limit("10/minute")
 async def health(request: Request):
     return {"status": "healthy", "version": "2.0.0"}

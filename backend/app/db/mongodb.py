@@ -12,21 +12,37 @@ class Database:
 
     async def connect(self):
         try:
-            self.client = AsyncIOMotorClient(settings.MONGODB_URL, serverSelectionTimeoutMS=5000)
+            logger.info(f"Connecting to MongoDB at {settings.MONGODB_URL}")
+            self.client = AsyncIOMotorClient(settings.MONGODB_URL, serverSelectionTimeoutMS=10000)
             self.db = self.client[settings.DB_NAME]
-            # Test the connection
+            # Test the connection quickly
             await self.client.server_info()
-            await self.db.users.create_index("email", unique=True)
-            await self.db.profiles.create_index("user_id")
-            await self.db.contacts.create_index("user_id")
-            await self.db.incidents.create_index("user_id")
-            await self.db.users_otp.create_index("email")
             logger.info("Connected to MongoDB successfully")
+            
+            # Move index creation to background to avoid blocking startup
+            import asyncio
+            asyncio.create_task(self.ensure_indexes())
+            
         except Exception as e:
             logger.warning(f"MongoDB not available: {e}")
             logger.info("Running with in-memory storage (data won't persist)")
             self._in_memory = True
             self.db = InMemoryDB()
+
+    async def ensure_indexes(self):
+        """Creates indexes in the background."""
+        if self._in_memory:
+            return
+        try:
+            logger.info("Ensuring database indexes...")
+            await self.db.users.create_index("email", unique=True)
+            await self.db.profiles.create_index("user_id")
+            await self.db.contacts.create_index("user_id")
+            await self.db.incidents.create_index("user_id")
+            await self.db.users_otp.create_index("email")
+            logger.info("Database indexes ensured successfully")
+        except Exception as e:
+            logger.error(f"Error creating indexes: {e}")
 
     async def disconnect(self):
         if self.client:
