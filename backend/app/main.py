@@ -29,24 +29,22 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="AyuSphere API", version="2.0.0", lifespan=lifespan)
+
+# Radical Request Logging Middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"INCOMING REQUEST: {request.method} {request.url.path}")
+    logger.info(f"HEADERS: {dict(request.headers)}")
+    response = await call_next(request)
+    logger.info(f"RESPONSE STATUS: {response.status_code}")
+    return response
+
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
-cors_origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://ayusphere.vercel.app",
-    "https://ayu-sphere-jade.vercel.app",
-]
-if settings.CORS_ORIGINS:
-    cors_origins.extend(
-        origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()
-    )
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=["*"],  # Temporarily allow all for debugging
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,27 +56,14 @@ def safe_cors_json_response(status_code: int, content: dict, request: Request):
     Creates a JSONResponse with explicit CORS headers.
     This is a fallback for when middleware might be bypassed or fail.
     """
-    origin = request.headers.get("origin")
-    # Allowed origins list matching CORSMiddleware
-    allowed = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://ayusphere.vercel.app",
-        "https://ayu-sphere-jade.vercel.app",
-    ]
+    origin = request.headers.get("origin") or "*"
     
-    headers = {}
-    if origin in allowed:
-        headers["Access-Control-Allow-Origin"] = origin
-    elif origin and (origin.endswith(".vercel.app")):
-        headers["Access-Control-Allow-Origin"] = origin
-    else:
-        # Fallback to the first allowed origin for better compatibility during errors
-        headers["Access-Control-Allow-Origin"] = allowed[0]
-        
-    headers["Access-Control-Allow-Credentials"] = "true"
-    headers["Access-Control-Allow-Methods"] = "*"
-    headers["Access-Control-Allow-Headers"] = "*"
+    headers = {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*"
+    }
     
     return JSONResponse(
         status_code=status_code,
@@ -140,6 +125,16 @@ app.include_router(sos.router, prefix="/api/v1/sos", tags=["SOS"])
 app.include_router(symptoms.router, prefix="/api/v1/symptoms", tags=["Symptoms"])
 app.include_router(hospitals.router, prefix="/api/v1", tags=["Hospitals"])
 app.include_router(chatbot.router, prefix="/api/v1/chatbot", tags=["Chatbot"])
+
+
+@app.get("/")
+@limiter.limit("10/minute")
+async def root(request: Request):
+    return {
+        "status": "System Live",
+        "message": "Welcome to AyuSphere API. Use /api/v1 for backend services.",
+        "version": "2.0.0"
+    }
 
 
 @app.get("/health")

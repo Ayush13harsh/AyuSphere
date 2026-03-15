@@ -57,6 +57,7 @@ function HomeContent() {
 
     try {
       if (authMode === 'login') {
+        console.log("[handleSubmit] Attempting login for:", email);
         const formData = new URLSearchParams();
         formData.append('username', email);
         formData.append('password', password);
@@ -67,6 +68,7 @@ function HomeContent() {
           body: formData
         });
 
+        console.log("[handleSubmit] Login response status:", res.status);
         const data = await parseResponse(res);
         if (!res.ok) throw new Error(data.detail || 'Login failed');
 
@@ -74,12 +76,13 @@ function HomeContent() {
 
       } else if (authMode === 'signup') {
         if (!isOtpSent) {
-          // Step 1: Request OTP
+          console.log("[handleSubmit] Requesting signup OTP for:", email);
           const res = await fetchWithRetry(`${API_URL}/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
           });
+          console.log("[handleSubmit] Signup response status:", res.status);
           const data = await parseResponse(res);
           if (!res.ok) {
             if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Signup failed');
@@ -89,12 +92,13 @@ function HomeContent() {
           setIsOtpSent(true);
           setSuccess('OTP sent to your email! (Check spam folder too)');
         } else {
-          // Step 2: Verify OTP
+          console.log("[handleSubmit] Verifying signup OTP for:", email);
           const res = await fetchWithRetry(`${API_URL}/auth/verify-signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, otp })
           });
+          console.log("[handleSubmit] Verify-signup response status:", res.status);
           const data = await parseResponse(res);
           if (!res.ok) {
             if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Verification failed');
@@ -106,24 +110,26 @@ function HomeContent() {
         }
       } else if (authMode === 'forgot') {
         if (!isOtpSent) {
-          // Step 1: Request Reset OTP
+          console.log("[handleSubmit] Requesting forgot-password OTP for:", email);
           const res = await fetchWithRetry(`${API_URL}/auth/forgot-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
           });
+          console.log("[handleSubmit] Forgot-password response status:", res.status);
           const data = await parseResponse(res);
           if (!res.ok) throw new Error(data.detail || 'Failed to send reset email');
 
           setIsOtpSent(true);
           setSuccess('If the account exists, an OTP has been sent to your email.');
         } else {
-          // Step 2: Reset Password
+          console.log("[handleSubmit] Resetting password for:", email);
           const res = await fetchWithRetry(`${API_URL}/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp, new_password: newPassword })
           });
+          console.log("[handleSubmit] Reset-password response status:", res.status);
           const data = await parseResponse(res);
           if (!res.ok) {
             if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Password reset failed');
