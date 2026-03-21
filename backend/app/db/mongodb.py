@@ -24,10 +24,14 @@ class Database:
             asyncio.create_task(self.ensure_indexes())
             
         except Exception as e:
-            logger.warning(f"MongoDB not available: {e}")
-            logger.info("Running with in-memory storage (data won't persist)")
-            self._in_memory = True
-            self.db = InMemoryDB()
+            logger.warning(f"MongoDB connection failed: {e}")
+            if settings.ALLOW_IN_MEMORY_DB:
+                logger.info("Running with in-memory storage (data won't persist)")
+                self._in_memory = True
+                self.db = InMemoryDB()
+            else:
+                logger.error("CRITICAL: MongoDB unavailable and ALLOW_IN_MEMORY_DB is False. Failing fast to prevent data loss.")
+                raise
 
     async def ensure_indexes(self):
         """Creates indexes in the background."""
@@ -40,6 +44,8 @@ class Database:
             await self.db.contacts.create_index("user_id")
             await self.db.incidents.create_index("user_id")
             await self.db.users_otp.create_index("email")
+            # TTL index for automatic cleanup of expired OTPs
+            await self.db.users_otp.create_index("expires_at", expireAfterSeconds=0)
             logger.info("Database indexes ensured successfully")
         except Exception as e:
             logger.error(f"Error creating indexes: {e}")

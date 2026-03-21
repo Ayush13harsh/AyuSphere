@@ -4,6 +4,7 @@ from app.models.models import UserCreate, UserResponse, Token, VerifySignupReque
 from app.db.mongodb import db
 from app.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, verify_token
 from app.core.limiter import limiter
+from app.core.config import settings
 from app.services.email_service import send_otp_email
 from bson import ObjectId
 import secrets
@@ -47,10 +48,14 @@ async def signup(request: Request, user: UserCreate):
     
     await db.db.users_otp.update_one(
         {"email": user.email, "purpose": "signup"},
-        {"$set": {"otp": otp, "expires_at": expires_at}},
+        {"$set": {"otp": otp, "expires_at": expires_at, "attempts": 0}},
         upsert=True
     )
     
+    if settings.TEST_MODE:
+        logger.info(f"TEST_MODE: Skipping email send. OTP for {user.email} is {otp}")
+        return {"message": "TEST_MODE: OTP generated.", "test_otp": otp}
+        
     email_sent = await send_otp_email(user.email, otp, "signup")
     if not email_sent:
         logger.error(f"Failed to send signup OTP email to: {user.email}")
@@ -69,6 +74,13 @@ async def verify_signup(request: Request, data: VerifySignupRequest):
         logger.info(f"[verify-signup] Step 1 - OTP record found: {otp_record is not None}")
         
         if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
+            if otp_record:
+                attempts = otp_record.get("attempts", 0) + 1
+                if attempts >= 3:
+                    await db.db.users_otp.delete_one({"_id": otp_record["_id"]})
+                    logger.warning(f"[verify-signup] Max OTP attempts reached for: {data.email}")
+                    raise HTTPException(status_code=400, detail="Maximum OTP attempts exceeded. Please request a new code.")
+                await db.db.users_otp.update_one({"_id": otp_record["_id"]}, {"$set": {"attempts": attempts}})
             logger.warning(f"[verify-signup] Invalid OTP for: {data.email}")
             raise HTTPException(status_code=400, detail="Invalid OTP")
             
@@ -144,10 +156,14 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest):
     
     await db.db.users_otp.update_one(
         {"email": data.email, "purpose": "reset_password"},
-        {"$set": {"otp": otp, "expires_at": expires_at}},
+        {"$set": {"otp": otp, "expires_at": expires_at, "attempts": 0}},
         upsert=True
     )
     
+    if settings.TEST_MODE:
+        logger.info(f"TEST_MODE: Skipping email send. OTP for {data.email} is {otp}")
+        return {"message": "TEST_MODE: OTP generated.", "test_otp": otp}
+        
     email_sent = await send_otp_email(data.email, otp, "reset_password")
     if not email_sent:
         logger.error(f"Failed to send password reset OTP email to: {data.email}")
@@ -161,6 +177,14 @@ async def reset_password(request: Request, data: ResetPasswordRequest):
     logger.info(f"Reset-password attempt for email: {data.email}")
     otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "reset_password"})
     if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
+        if otp_record:
+            attempts = otp_record.get("attempts", 0) + 1
+            if attempts >= 3:
+                await db.db.users_otp.delete_one({"_id": otp_record["_id"]})
+                logger.warning(f"Max OTP attempts reached for reset-password: {data.email}")
+                raise HTTPException(status_code=400, detail="Maximum OTP attempts exceeded. Please request a new code.")
+            await db.db.users_otp.update_one({"_id": otp_record["_id"]}, {"$set": {"attempts": attempts}})
+            
         logger.warning(f"Invalid OTP for reset-password: {data.email}")
         raise HTTPException(status_code=400, detail="Invalid OTP")
         

@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     SMTP_FROM_EMAIL: str = "noreply@ayusphere.com"
     # CORS settings (comma-separated list of additional allowed origins)
     CORS_ORIGINS: str = ""
+    # Environment Flags
+    TEST_MODE: bool = False
+    ALLOW_IN_MEMORY_DB: bool = False
+
     class Config:
         env_file = ".env"
 
