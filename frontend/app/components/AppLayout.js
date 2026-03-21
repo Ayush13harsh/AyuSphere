@@ -23,7 +23,7 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div className="relative group">
                         <div style={{ position: 'absolute', inset: 0, background: 'var(--primary)', opacity: 0.2, filter: 'blur(20px)', borderRadius: '9999px' }}></div>
-                        <img src="/logo.svg" alt="Logo" width="40" height="40" style={{ position: 'relative', z-index: 10, borderRadius: '8px' }} />
+                        <img src="/logo.svg" alt="Logo" width="40" height="40" style={{ position: 'relative', zIndex: 10, borderRadius: '8px' }} />
                     </div>
                     <div>
                         <span style={{ fontSize: '10px', tracking: '0.4em', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 'bold', display: 'block' }}>Protocol Active</span>
