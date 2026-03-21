@@ -396,6 +396,25 @@ export default function Dashboard() {
                 </div>
             </div>
             </div>
+            
+            <footer className="premium-footer">
+                <div className="footer-content">
+                    <p className="footer-text">
+                        Made by <span className="author-name">AYUSH HARSH</span>
+                    </p>
+                    <div className="social-links">
+                        <a href="https://www.instagram.com/ayustance/" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Instagram">
+                            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                        </a>
+                        <a href="https://www.linkedin.com/in/ayush13harsh/" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="LinkedIn">
+                            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                        </a>
+                        <a href="mailto:ayush13032003harsh@gmail.com" className="social-icon" aria-label="Email">
+                            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        </a>
+                    </div>
+                </div>
+            </footer>
 
             {showTracker && userCoords && (
                 <AmbulanceTracker userLocation={userCoords} onClose={() => setShowTracker(false)} />
