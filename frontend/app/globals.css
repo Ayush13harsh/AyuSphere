@@ -936,11 +936,12 @@ main {
 .dashboard-layout {
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly; /* Evenly distills the available space to fit exactly 1 screen */
-  height: calc(100vh - 250px); /* 100vh - Header(70) - Nav(80) - Footer(100) = Exact fit! */
-  min-height: 480px; /* Safe minimum height constraint to prevent crushing cards */
+  justify-content: flex-start;
+  height: auto !important; /* Revert to natural auto-wrap to prevent any container overlapping */
+  min-height: 0 !important;
+  gap: clamp(0.5rem, 1.5vh, 1rem); /* Tightly compress vertical layout gaps dynamically */
   padding-bottom: 0rem;
-  padding-top: 1rem;
+  padding-top: 0.5rem;
 }
 
 /* ══════════════════════════════════════════════════
@@ -948,8 +949,8 @@ main {
    ══════════════════════════════════════════════════ */
 
 .premium-footer {
-  margin-top: 0; /* Directly attached below Health Hub without any space void */
-  padding-bottom: 6.5rem; /* Absolutely guarantees it clears the fixed Bottom Nav */
+  margin-top: 1rem; /* "just below the main content and leave a little bit space very little bit" */
+  padding-bottom: 5.2rem; /* Sits precisely right above the 80px fixed Bottom Nav */
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -965,33 +966,33 @@ main {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px; /* curvy at the corner giving it premium look */
-  padding: 1.25rem 2.5rem; /* Reduced internal padding to collapse unneeded space */
+  border-radius: 18px; /* curvy at the corner giving it premium look */
+  padding: 0.75rem 1.5rem; /* Highly compacted internal padding to save viewport height! */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.2rem;
+  gap: 0.75rem; /* Tightly pack text to icons */
   z-index: 2;
   position: relative;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
 .footer-text {
-  font-size: 0.95rem;
+  font-size: 0.85rem; /* Thinner font to minimize layout strain */
   color: #f1f5f9; /* Highly readable stark silver/white against dark card */
   font-weight: 500;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .author-name {
-  font-size: 1.25rem;
+  font-size: 1.15rem; /* Scaled synchronously */
   font-weight: 900;
   color: #ffffff;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   background: linear-gradient(90deg, #f43f5e, #3b82f6);
   -webkit-background-clip: text;
   background-clip: text;
@@ -1002,27 +1003,27 @@ main {
 
 .author-name:hover {
   filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.7));
-  letter-spacing: 3px;
+  letter-spacing: 2.5px;
 }
 
 .social-links {
   display: flex;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .social-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 38px; /* Leaner box model completely eliminates overlap */
+  height: 38px;
   background: rgba(255, 255, 255, 0.08) !important; /* Squarish visible block in background */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  border-radius: 12px !important; /* Little bit squarish curvy box */
+  border-radius: 10px !important; /* Little bit squarish curvy box */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; /* Standout shadow separating it from container */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; /* Standout shadow separating it from container */
 }
 
 .social-icon svg {
