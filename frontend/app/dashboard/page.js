@@ -398,6 +398,17 @@ export default function Dashboard() {
             </div>
             
             <footer className="premium-footer">
+                <svg style={{ position: 'absolute', width: 0, height: 0 }} aria-hidden="true" focusable="false">
+                    <defs>
+                        <linearGradient id="igGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#f09433" />
+                            <stop offset="25%" stopColor="#e6683c" />
+                            <stop offset="50%" stopColor="#dc2743" />
+                            <stop offset="75%" stopColor="#cc2366" />
+                            <stop offset="100%" stopColor="#bc1888" />
+                        </linearGradient>
+                    </defs>
+                </svg>
                 <div className="footer-content">
                     <p className="footer-text">
                         Made by <span className="author-name">AYUSH HARSH</span>
