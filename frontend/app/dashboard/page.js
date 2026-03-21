@@ -214,7 +214,7 @@ export default function Dashboard() {
                 {/* ── Right Column: SOS & Logs ── */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', gridColumn: 'span 5' }}>
                     <div className="glass-panel" style={{ padding: '2.5rem', borderRadius: '2rem', textAlign: 'center', border: '1px solid rgba(255, 61, 0, 0.1)' }}>
-                        <span className="font-headline" style={{ fontSize: '10px', tracking: '0.4em', color: 'var(--accent)', fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '2.5rem' }}>Emergency Override</span>
+                        <span className="font-headline" style={{ fontSize: '10px', letterSpacing: '0.4em', color: 'var(--accent)', fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '2.5rem' }}>Emergency Override</span>
                         
                         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2.5rem' }}>
                             <button 

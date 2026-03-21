@@ -137,7 +137,7 @@ function HomeContent() {
         <div style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 10 }}>
           <div className="glass-panel" style={{ padding: '3rem', borderRadius: '2.5rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <span style={{ fontSize: '10px', tracking: '0.4em', color: 'var(--muted)', fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Security Protocol</span>
+              <span style={{ fontSize: '10px', letterSpacing: '0.4em', color: 'var(--muted)', fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Security Protocol</span>
               <h2 className="font-headline" style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>
                 {authMode === 'login' ? 'ACCESS UNIT' : 'CORE ENROLL'}
               </h2>

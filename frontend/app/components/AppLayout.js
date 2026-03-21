@@ -26,7 +26,7 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
                         <img src="/logo.svg" alt="Logo" width="40" height="40" style={{ position: 'relative', zIndex: 10, borderRadius: '8px' }} />
                     </div>
                     <div>
-                        <span style={{ fontSize: '10px', tracking: '0.4em', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 'bold', display: 'block' }}>Protocol Active</span>
+                        <span style={{ fontSize: '10px', letterSpacing: '0.4em', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 'bold', display: 'block' }}>Protocol Active</span>
                         <h1 className="cinematic-glow" style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--primary)', margin: 0 }}>AYUSPHERE</h1>
                     </div>
                 </div>
