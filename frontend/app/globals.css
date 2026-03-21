@@ -122,6 +122,10 @@
 /* ── Reset & Base ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+main {
+  padding-bottom: 80px; /* Crucial: Ensures content clears the fixed bottom nav */
+}
+
 /* ── Universal Hover Pop-Up Effect ── */
 button, a, .action-card, .card, .list-item, .nav-item, .btn, .theme-toggle, input[type="submit"], [role="button"] {
   transition: all 0.4s var(--apple-ease);
@@ -644,8 +648,10 @@ main {
   background: var(--white);
   border-top: 1px solid var(--border);
   padding: 0.4rem 0 0.5rem 0;
-  position: sticky;
+  position: fixed; /* Force to bottom of viewport always */
   bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   backdrop-filter: var(--glass-blur) var(--glass-saturate);
   -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
