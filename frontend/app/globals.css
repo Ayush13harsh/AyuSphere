@@ -879,115 +879,137 @@ main {
 @keyframes banner-slide-in { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* ══════════════════════════════════════════════════
-   RESPONSIVE COMPACTION: SCROLL-FREE "APP" AESTHETIC
+   RESPONSIVE COMPACTION: STRICT 100VH "APP" BOUNDARY
    ══════════════════════════════════════════════════ */
 
-/* The new global wrapper allows vertical contents to stretch apart dynamically */
+/* Strictly lock body from scrolling and enforce fixed 100vh limit universally */
+body {
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+main {
+  height: calc(100vh - 60px); /* Account for bottom nav */
+  padding-bottom: 0 !important; /* overrides previous 80px */
+  overflow: hidden;
+}
+
+/* The global wrapper meticulously distributes contents precisely fitting the screen */
 .dashboard-layout {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: calc(100vh - 140px);
-  padding-bottom: 1rem;
+  justify-content: space-evenly;
+  height: calc(100vh - 120px); /* header + bottom nav space subtracted */
+  padding-bottom: 0.5rem;
+  overflow: hidden;
 }
 
 /* Force dense view on all standard screens to fit perfectly in 100vh without scrolling */
 @media (max-height: 1000px) {
   .sos-container {
-    padding: 0.5rem 0 1rem 0 !important;
-    gap: 1.5rem !important;
+    padding: 0.5vh 0 !important;
+    gap: 1.5vh !important;
   }
   .sos-button {
-    width: 110px;
-    height: 110px;
-    font-size: 1.8rem;
+    width: min(20vh, 110px);
+    height: min(20vh, 110px);
+    font-size: min(3.5vh, 1.8rem);
+  }
+  /* Target the inline style containers aggressively to squish spacing */
+  div[style*="marginBottom: '1.5rem'"], div[style*="marginBottom: '2rem'"] {
+    margin-bottom: 0.5vh !important;
+  }
+  div[style*="marginBottom: '0.25rem'"] {
+    margin-bottom: 0 !important;
   }
   .quick-actions, .health-hub-grid {
-    margin-bottom: 0.5rem !important;
-    gap: 1rem !important;
+    gap: 0.75rem !important;
   }
   .action-card {
-    padding: 1rem 0.5rem !important;
+    padding: 1.25vh 0.5vw !important;
   }
   .icon-badge {
-    width: 44px;
-    height: 44px;
+    width: min(8vh, 44px);
+    height: min(8vh, 44px);
   }
   .action-card svg {
-    width: 24px;
-    height: 24px;
+    width: min(4vh, 24px);
+    height: min(4vh, 24px);
   }
   .premium-gradient-red, .premium-gradient-blue, .health-hub-card {
-    padding: 0.9rem !important;
+    padding: 1.5vh !important;
   }
   h3 {
-    margin-bottom: 0.6rem !important;
+    margin-bottom: 0.5vh !important;
+    font-size: min(1.8vh, 0.85rem) !important;
   }
   h2 {
-    font-size: 1.6rem !important;
-  }
-  div[style*="marginBottom: '1.5rem'"], div[style*="marginBottom: '2rem'"] {
-    margin-bottom: 0.5rem !important;
+    font-size: min(3vh, 1.6rem) !important;
   }
   .bottom-nav {
-    padding: 0.2rem 0;
+    padding: 0.5vh 0;
   }
 }
 
 /* Extreme mobile device compaction */
 @media (max-width: 768px) {
   .dashboard-layout {
-    min-height: calc(100vh - 120px); /* Slightly shorter header/nav on mobile */
+    height: calc(100vh - 110px); /* Slightly shorter header/nav on mobile */
   }
   .sos-container {
-    padding: 0.5rem 0 !important;
-    gap: 1rem !important;
-    flex-direction: column; /* Stack Voice SOS under the main globe on mobile */
+    padding: 0.5vh 0 !important;
+    gap: 0.5rem !important;
+    flex-direction: row; /* KEEP SIDE-BY-SIDE ON MOBILE AS REQUESTED */
+    justify-content: center;
   }
   .sos-button {
-    width: 100px;
-    height: 100px;
-    font-size: 1.6rem;
+    width: min(15vh, 90px);
+    height: min(15vh, 90px);
+    font-size: 1.4rem;
+  }
+  .voice-sos-card {
+    min-width: 120px !important; /* Force smaller to fit horizontally */
+    padding: 8px 14px !important;
   }
   .action-card span {
-    font-size: 0.85rem !important;
+    font-size: min(1.8vh, 0.85rem) !important;
   }
   .icon-badge {
-    width: 38px;
-    height: 38px;
+    width: min(6vh, 36px);
+    height: min(6vh, 36px);
     border-radius: 12px;
   }
   .premium-gradient-red > div:last-child > div:first-child,
   .premium-gradient-blue > div:last-child > div:first-child,
   .health-hub-card > div:last-child > div:first-child {
-    font-size: 0.9rem !important;
+    font-size: min(2vh, 0.9rem) !important;
   }
   .premium-gradient-red > div:last-child > div:last-child,
   .premium-gradient-blue > div:last-child > div:last-child,
   .health-hub-card > div:last-child > div:last-child {
-    font-size: 0.75rem !important;
+    font-size: min(1.5vh, 0.75rem) !important;
   }
-  /* Smaller floating badge for Emergency Actions/Health Hub */
   .premium-gradient-red > div:first-child,
   .premium-gradient-blue > div:first-child,
   .health-hub-card > div:first-child {
-    width: 40px !important;
-    height: 40px !important;
+    width: min(7vh, 38px) !important;
+    height: min(7vh, 38px) !important;
   }
   .premium-gradient-red > div:first-child svg,
   .premium-gradient-blue > div:first-child svg,
   .health-hub-card > div:first-child svg {
-    width: 22px;
-    height: 22px;
+    width: min(3.5vh, 20px);
+    height: min(3.5vh, 20px);
   }
   .nav-item {
-    font-size: 0.7rem;
-    padding: 4px 8px;
+    font-size: 0.65rem;
+    padding: 4px 6px;
   }
   header {
     padding: 0.4rem 1rem;
   }
   header img {
-    height: 28px;
+    height: 26px;
   }
 }
