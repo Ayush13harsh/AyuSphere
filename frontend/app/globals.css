@@ -947,55 +947,60 @@ main {
    ══════════════════════════════════════════════════ */
 
 .premium-footer {
-  margin-top: 0;
-  padding: 3rem 1rem 4rem 1rem;
+  margin-top: 1.5rem; /* Sits naturally right below the perfectly packed Health Hub */
+  padding-bottom: 3.5rem; /* Ensures the floating card completely clears the fixed Bottom Nav */
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
-  /* Premium dark glassmorphic background just below content */
-  background: linear-gradient(to top, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.7));
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+  background: transparent !important;
+  border-top: none !important;
+  box-shadow: none !important;
   animation: footerFadeInUp 1s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .footer-content {
+  background: rgba(15, 23, 42, 0.88); /* Premium dark floating glass pill */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px; /* curvy at the corner giving it premium look */
+  padding: 1.5rem 2.5rem; /* only covers text and icons */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   z-index: 2;
   position: relative;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
 }
 
 .footer-text {
   font-size: 0.95rem;
-  color: var(--text-light);
+  color: #f1f5f9; /* Highly readable stark silver/white against dark card */
+  font-weight: 500;
   letter-spacing: 0.5px;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .author-name {
   font-size: 1.25rem;
   font-weight: 900;
-  color: var(--text-dark);
+  color: #ffffff;
   letter-spacing: 2.5px;
   background: linear-gradient(90deg, #f43f5e, #3b82f6);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(244, 63, 94, 0.2));
+  filter: drop-shadow(0 2px 4px rgba(244, 63, 94, 0.3));
   transition: all 0.3s ease;
 }
 
 .author-name:hover {
-  filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.6));
+  filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.7));
   letter-spacing: 3px;
 }
 
