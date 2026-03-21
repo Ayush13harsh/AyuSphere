@@ -392,19 +392,6 @@ main {
   text-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Soft radial glow behind SOS */
-.sos-container::before {
-  content: '';
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(239, 68, 68, 0.12) 0%, transparent 70%);
-  z-index: 0;
-  animation: sos-breathe 3s infinite ease-in-out;
-  pointer-events: none;
-}
-
 /* Double ring pulse */
 .sos-button::before,
 .sos-button::after {
