@@ -51,10 +51,6 @@ async def signup(request: Request, user: UserCreate):
         {"$set": {"otp": otp, "expires_at": expires_at, "attempts": 0}},
         upsert=True
     )
-    
-    if settings.TEST_MODE:
-        logger.info(f"TEST_MODE: Skipping email send. OTP for {user.email} is {otp}")
-        return {"message": "TEST_MODE: OTP generated.", "test_otp": otp}
         
     email_sent = await send_otp_email(user.email, otp, "signup")
     if not email_sent:
@@ -159,10 +155,6 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest):
         {"$set": {"otp": otp, "expires_at": expires_at, "attempts": 0}},
         upsert=True
     )
-    
-    if settings.TEST_MODE:
-        logger.info(f"TEST_MODE: Skipping email send. OTP for {data.email} is {otp}")
-        return {"message": "TEST_MODE: OTP generated.", "test_otp": otp}
         
     email_sent = await send_otp_email(data.email, otp, "reset_password")
     if not email_sent:

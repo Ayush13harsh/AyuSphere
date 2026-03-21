@@ -17,7 +17,6 @@ class Settings(BaseSettings):
     # CORS settings (comma-separated list of additional allowed origins)
     CORS_ORIGINS: str = ""
     # Environment Flags
-    TEST_MODE: bool = False
     ALLOW_IN_MEMORY_DB: bool = False
 
     class Config:
