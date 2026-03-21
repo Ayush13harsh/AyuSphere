@@ -28,7 +28,11 @@ function HomeContent() {
 
   const parseResponse = async (res) => {
     const text = await res.text();
-    try { return JSON.parse(text); } catch { throw new Error(text || 'Unexpected server response'); }
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(text || 'Unexpected server response');
+    }
   };
 
   const resetState = (mode) => {
@@ -37,8 +41,12 @@ function HomeContent() {
     setError('');
     setSuccess('');
     setOtp('');
-    if (mode === 'login') { setPassword(''); setNewPassword(''); }
-    else if (mode === 'forgot') { setPassword(''); }
+    if (mode === 'login') {
+      setPassword('');
+      setNewPassword('');
+    } else if (mode === 'forgot') {
+      setPassword('');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -49,163 +57,315 @@ function HomeContent() {
 
     try {
       if (authMode === 'login') {
+        console.log("[handleSubmit] Attempting login for:", email);
         const formData = new URLSearchParams();
         formData.append('username', email);
         formData.append('password', password);
+
         const res = await fetchWithRetry(`${API_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: formData
         });
+
+        console.log("[handleSubmit] Login response status:", res.status);
         const data = await parseResponse(res);
         if (!res.ok) throw new Error(data.detail || 'Login failed');
+
         login(data.access_token, data.refresh_token);
+
       } else if (authMode === 'signup') {
         if (!isOtpSent) {
+          console.log("[handleSubmit] Requesting signup OTP for:", email);
           const res = await fetchWithRetry(`${API_URL}/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
           });
+          console.log("[handleSubmit] Signup response status:", res.status);
           const data = await parseResponse(res);
-          if (!res.ok) throw new Error(data.detail || 'Signup failed');
+          if (!res.ok) {
+            if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Signup failed');
+            throw new Error(data.detail || 'Signup failed');
+          }
+
           setIsOtpSent(true);
-          setSuccess('OTP sent to your email!');
+          setSuccess('OTP sent to your email! (Check spam folder too)');
         } else {
+          console.log("[handleSubmit] Verifying signup OTP for:", email);
           const res = await fetchWithRetry(`${API_URL}/auth/verify-signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, otp })
           });
+          console.log("[handleSubmit] Verify-signup response status:", res.status);
           const data = await parseResponse(res);
-          if (!res.ok) throw new Error(data.detail || 'Verification failed');
-          setSuccess('Account created!');
+          if (!res.ok) {
+            if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Verification failed');
+            throw new Error(data.detail || 'Verification failed');
+          }
+
+          setSuccess('Account created and verified!');
           login(data.access_token, data.refresh_token);
         }
       } else if (authMode === 'forgot') {
         if (!isOtpSent) {
+          console.log("[handleSubmit] Requesting forgot-password OTP for:", email);
           const res = await fetchWithRetry(`${API_URL}/auth/forgot-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
           });
+          console.log("[handleSubmit] Forgot-password response status:", res.status);
           const data = await parseResponse(res);
           if (!res.ok) throw new Error(data.detail || 'Failed to send reset email');
+
           setIsOtpSent(true);
-          setSuccess('OTP sent to your email.');
+          setSuccess('If the account exists, an OTP has been sent to your email.');
         } else {
+          console.log("[handleSubmit] Resetting password for:", email);
           const res = await fetchWithRetry(`${API_URL}/auth/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp, new_password: newPassword })
           });
+          console.log("[handleSubmit] Reset-password response status:", res.status);
           const data = await parseResponse(res);
-          if (!res.ok) throw new Error(data.detail || 'Password reset failed');
-          setSuccess('Password updated!');
+          if (!res.ok) {
+            if (Array.isArray(data.detail)) throw new Error(data.detail[0]?.msg || 'Password reset failed');
+            throw new Error(data.detail || 'Password reset failed');
+          }
+
+          setSuccess('Password updated successfully! Please login.');
           setTimeout(() => resetState('login'), 2000);
         }
       }
     } catch (err) {
-      setError(err.message);
+      console.error("[handleSubmit] ERROR:", err);
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError(getNetworkErrorMessage(err));
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const getTitle = () => {
+    if (authMode === 'login') return 'Welcome Back';
+    if (authMode === 'signup' && !isOtpSent) return 'Create Account';
+    if (authMode === 'signup' && isOtpSent) return 'Verify Email';
+    if (authMode === 'forgot' && !isOtpSent) return 'Reset Password';
+    return 'Create New Password';
+  };
+
+  const getSubtitle = () => {
+    if (authMode === 'login') return 'Sign in to access your emergency dashboard';
+    if (authMode === 'signup' && !isOtpSent) return 'Join AyuSphere for instant emergency access';
+    if (authMode === 'signup' && isOtpSent) return 'Enter the 6-digit code sent to your email';
+    if (authMode === 'forgot' && !isOtpSent) return 'Enter your email to receive a reset code';
+    return 'Enter the code and your new password';
+  };
+
+  const getButtonText = () => {
+    if (authMode === 'login') return 'Sign In →';
+    if (authMode === 'signup' && !isOtpSent) return 'Continue →';
+    if (authMode === 'signup' && isOtpSent) return 'Verify & Create Account →';
+    if (authMode === 'forgot' && !isOtpSent) return 'Send Reset Code →';
+    return 'Update Password →';
+  };
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#050608' }}>
-      <div className="bg-noise" />
-      
-      {/* Cinematic Header */}
-      <header style={{ padding: '2rem 3rem', background: 'transparent' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'var(--primary)', opacity: 0.2, filter: 'blur(15px)', borderRadius: '50%' }}></div>
-            <img src="/logo.svg" alt="AyuSphere" width="40" height="40" style={{ position: 'relative', zIndex: 10, borderRadius: '8px' }} />
-          </div>
-          <h1 className="font-headline cinematic-glow" style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)', letterSpacing: '0.2em' }}>
-            AYUSPHERE
-          </h1>
-        </div>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {/* Premium Header */}
+      <header style={{
+        background: 'transparent',
+        boxShadow: 'none',
+        borderBottom: 'none',
+        padding: '1.25rem 1.5rem',
+        backdropFilter: 'none'
+      }}>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#ef4444', fontSize: '1.5rem', fontWeight: 900 }}>
+          <img src="/logo.svg" alt="AyuSphere" width="32" height="32" style={{ borderRadius: '8px' }} />
+          AyuSphere
+        </h1>
       </header>
 
-      {/* Auth UI */}
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative' }}>
-        {/* Glow backdrop */}
-        <div style={{ position: 'absolute', width: '30vw', height: '30vw', background: 'var(--primary)', opacity: 0.05, filter: 'blur(100px)', zIndex: 0 }}></div>
-        
-        <div style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 10 }}>
-          <div className="glass-panel" style={{ padding: '3rem', borderRadius: '2.5rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              <span style={{ fontSize: '10px', letterSpacing: '0.4em', color: 'var(--muted)', fontWeight: 'bold', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Security Protocol</span>
-              <h2 className="font-headline" style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>
-                {authMode === 'login' ? 'ACCESS UNIT' : 'CORE ENROLL'}
-              </h2>
-              <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                {authMode === 'login' ? 'Authorize credentials to enter' : 'Initialize your biometric profile'}
-              </p>
+      {/* Main Content */}
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div style={{ width: '100%', maxWidth: '420px' }}>
+          {/* Hero Section */}
+          <div style={{ textAlign: 'center', marginBottom: '2rem', animation: 'fade-in 0.5s ease' }}>
+            {/* Animated SOS Icon */}
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '24px', margin: '0 auto 1.25rem auto',
+              display: 'flex', justifyContent: 'center', alignItems: 'center',
+              boxShadow: '0 12px 35px rgba(239,68,68,0.35)',
+              animation: 'float 3s ease-in-out infinite',
+              overflow: 'hidden'
+            }}>
+              <img src="/logo.svg" alt="AyuSphere" width="80" height="80" />
             </div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-dark)', letterSpacing: '-0.5px' }}>
+              {getTitle()}
+            </h2>
+            <p style={{ color: 'var(--text-light)', marginTop: '6px', fontSize: '0.95rem' }}>
+              {getSubtitle()}
+            </p>
+          </div>
 
-            {error && <div style={{ background: 'rgba(255,61,0,0.1)', color: 'var(--accent)', padding: '1rem', borderRadius: '1rem', marginBottom: '1.5rem', fontSize: '0.8rem', border: '1px solid rgba(255,61,0,0.2)' }}>{error}</div>}
-            {success && <div style={{ background: 'rgba(0,229,255,0.1)', color: 'var(--primary)', padding: '1rem', borderRadius: '1rem', marginBottom: '1.5rem', fontSize: '0.8rem', border: '1px solid rgba(0,229,255,0.2)' }}>{success}</div>}
+          {/* Premium Glass Card */}
+          <div style={{
+            background: 'var(--white)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            borderRadius: '24px',
+            border: '1px solid var(--border)',
+            padding: '2rem',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.08), 0 4px 20px rgba(239,68,68,0.06)',
+            animation: 'slide-up 0.5s ease'
+          }}>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Data Terminal</label>
-                <input
-                  type="email"
-                  placeholder="USER_ID@NET"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '1.25rem', borderRadius: '1rem', color: 'white', outline: 'none', transition: 'all 0.3s' }}
-                />
-              </div>
+            {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
+            {success && <div className="alert alert-success" style={{ marginBottom: '1rem' }}>{success}</div>}
+
+            <form onSubmit={handleSubmit}>
 
               {(!isOtpSent || authMode === 'login') && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Access Key</label>
+                <div className="form-group">
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.3px', display: 'block', marginBottom: '0.5rem' }}>Email Address</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    readOnly={isOtpSent}
+                    style={{ padding: '0.9rem 1.1rem', fontSize: '1rem', borderRadius: '14px', background: isOtpSent ? '#f3f4f6' : 'white', width: '100%', boxSizing: 'border-box' }}
+                  />
+                </div>
+              )}
+
+              {(authMode === 'login' || (authMode === 'signup' && !isOtpSent)) && (
+                <div className="form-group">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.3px' }}>Password</label>
+                    {authMode === 'login' && (
+                      <button
+                        type="button"
+                        onClick={() => resetState('forgot')}
+                        style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                      >
+                        Forgot Password?
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="password"
+                    className="form-control"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '1.25rem', borderRadius: '1rem', color: 'white', outline: 'none' }}
+                    minLength={authMode === 'login' ? 1 : 6}
+                    style={{ padding: '0.9rem 1.1rem', fontSize: '1rem', borderRadius: '14px', width: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
               )}
 
-              {isOtpSent && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontSize: '10px', color: 'var(--muted)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }}>OTP Token</label>
+              {isOtpSent && (authMode === 'signup' || authMode === 'forgot') && (
+                <div className="form-group" style={{ animation: 'fade-in 0.4s ease' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.3px', display: 'block', marginBottom: '0.5rem' }}>6-Digit Code</label>
                   <input
                     type="text"
-                    placeholder="CODE_000000"
+                    className="form-control"
+                    placeholder="123456"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     required
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '1.25rem', borderRadius: '1rem', color: 'white', textAlign: 'center', letterSpacing: '0.5em', outline: 'none' }}
+                    maxLength={6}
+                    style={{ padding: '0.9rem 1.1rem', fontSize: '1rem', borderRadius: '14px', letterSpacing: '4px', textAlign: 'center', fontWeight: 'bold', width: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
               )}
 
-              <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '1rem', width: '100%' }}>
-                {loading ? 'AUTHORIZING...' : authMode === 'login' ? 'STRIKE SYSTEM →' : 'INITIALIZE →'}
+              {isOtpSent && authMode === 'forgot' && (
+                <div className="form-group" style={{ animation: 'fade-in 0.4s ease' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.3px', display: 'block', marginBottom: '0.5rem' }}>New Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    placeholder="••••••••"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    style={{ padding: '0.9rem 1.1rem', fontSize: '1rem', borderRadius: '14px', width: '100%', boxSizing: 'border-box' }}
+                  />
+                </div>
+              )}
+
+              <button type="submit" className="btn btn-primary" disabled={loading} style={{ marginTop: '0.5rem', padding: '1rem', fontSize: '1.05rem', borderRadius: '14px', width: '100%' }}>
+                {loading ? <span className="loading-spinner"></span> : getButtonText()}
               </button>
             </form>
 
-            <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
-              <button
-                onClick={() => resetState(authMode === 'login' ? 'signup' : 'login')}
-                style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em' }}
-              >
-                {authMode === 'login' ? 'Switch to Neural Enroll' : 'Return to Core Terminal'}
-              </button>
+            {/* Divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '1.5rem 0 1rem 0' }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
+              <span style={{ color: 'var(--text-light)', fontSize: '0.8rem', fontWeight: 600 }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
             </div>
+
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                if (authMode === 'login') resetState('signup');
+                else resetState('login');
+              }}
+              style={{
+                width: '100%', padding: '0.9rem',
+                borderRadius: '14px', border: '2px solid var(--border)',
+                background: 'transparent', color: 'var(--text-dark)',
+                fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+                transition: 'all 0.3s ease', fontFamily: 'inherit'
+              }}
+            >
+              {authMode === 'login' ? '✨ Create a new account' : '← Back to Sign In'}
+            </button>
+          </div>
+
+          {/* Feature Badges */}
+          <div style={{
+            display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '2rem',
+            animation: 'fade-in 0.8s ease'
+          }}>
+            {[
+              { icon: '🔒', text: 'Secure' },
+              { icon: '⚡', text: 'Instant' },
+              { icon: '🏥', text: 'Medical' },
+            ].map((b, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600
+              }}>
+                <span style={{ fontSize: '1rem' }}>{b.icon}</span>
+                {b.text}
+              </div>
+            ))}
           </div>
         </div>
       </main>
+
+      {/* Float animation */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+      `}</style>
     </div>
   );
 }
