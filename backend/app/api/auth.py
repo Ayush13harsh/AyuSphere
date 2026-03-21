@@ -72,10 +72,14 @@ async def verify_signup(request: Request, data: VerifySignupRequest):
             logger.warning(f"[verify-signup] Invalid OTP for: {data.email}")
             raise HTTPException(status_code=400, detail="Invalid OTP")
             
-        # Step 2: Check expiry
-        if otp_record.get("expires_at", datetime.now(timezone.utc)) < datetime.now(timezone.utc):
-            logger.warning(f"[verify-signup] Expired OTP for: {data.email}")
-            raise HTTPException(status_code=400, detail="OTP expired")
+        # Step 2: Check expiry (normalize tz — MongoDB returns naive datetimes)
+        expires_at = otp_record.get("expires_at")
+        if expires_at is not None:
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if expires_at < datetime.now(timezone.utc):
+                logger.warning(f"[verify-signup] Expired OTP for: {data.email}")
+                raise HTTPException(status_code=400, detail="OTP expired")
         logger.info(f"[verify-signup] Step 2 - OTP valid and not expired")
             
         # Step 3: Check existing user
@@ -160,9 +164,14 @@ async def reset_password(request: Request, data: ResetPasswordRequest):
         logger.warning(f"Invalid OTP for reset-password: {data.email}")
         raise HTTPException(status_code=400, detail="Invalid OTP")
         
-    if otp_record.get("expires_at", datetime.now(timezone.utc)) < datetime.now(timezone.utc):
-        logger.warning(f"Expired OTP for reset-password: {data.email}")
-        raise HTTPException(status_code=400, detail="OTP expired")
+    # Normalize tz — MongoDB returns naive datetimes
+    expires_at = otp_record.get("expires_at")
+    if expires_at is not None:
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at < datetime.now(timezone.utc):
+            logger.warning(f"Expired OTP for reset-password: {data.email}")
+            raise HTTPException(status_code=400, detail="OTP expired")
         
     hashed_password = get_password_hash(data.new_password)
     await db.db.users.update_one(
