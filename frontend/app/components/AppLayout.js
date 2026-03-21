@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import InteractiveBackground from './InteractiveBackground';
 
 export default function AppLayout({ children, title = 'AyuSphere' }) {
     const { logout } = useAuth();
@@ -29,6 +30,8 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
 
     return (
         <>
+            <InteractiveBackground />
+            <div className="app-container">
             <header>
                 <h1>
                     <img src="/logo.svg" alt="AyuSphere" width="30" height="30" style={{ borderRadius: '8px' }} />
@@ -66,6 +69,7 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
                     Profile
                 </Link>
             </nav>
+            </div>
         </>
     );
 }
