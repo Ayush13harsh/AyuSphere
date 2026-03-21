@@ -56,9 +56,18 @@ async def log_requests(request: Request, call_next):
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
+# Combine default origins with any extra origins from CORS_ORIGINS env var
+_default_origins = [
+    "https://ayusphere.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+_extra = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()] if settings.CORS_ORIGINS else []
+_allowed_origins = list(set(_default_origins + _extra))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Temporarily allow all for debugging
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

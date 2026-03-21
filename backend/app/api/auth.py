@@ -61,30 +61,36 @@ async def signup(request: Request, user: UserCreate):
 @router.post("/verify-signup", response_model=Token, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def verify_signup(request: Request, data: VerifySignupRequest):
-    logger.info(f"Verify-signup attempt for email: {data.email}")
-    otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "signup"})
-    if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
-        logger.warning(f"Invalid OTP for verify-signup: {data.email}")
-        raise HTTPException(status_code=400, detail="Invalid OTP")
+    try:
+        logger.info(f"Verify-signup attempt for email: {data.email}")
+        otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "signup"})
+        if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
+            logger.warning(f"Invalid OTP for verify-signup: {data.email}")
+            raise HTTPException(status_code=400, detail="Invalid OTP")
+            
+        if otp_record.get("expires_at", datetime.now(timezone.utc)) < datetime.now(timezone.utc):
+            logger.warning(f"Expired OTP for verify-signup: {data.email}")
+            raise HTTPException(status_code=400, detail="OTP expired")
+            
+        existing_user = await db.db.users.find_one({"email": data.email})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+            
+        hashed_password = get_password_hash(data.password)
+        user_dict = {"email": data.email, "hashed_password": hashed_password}
         
-    if otp_record.get("expires_at", datetime.now(timezone.utc)) < datetime.now(timezone.utc):
-        logger.warning(f"Expired OTP for verify-signup: {data.email}")
-        raise HTTPException(status_code=400, detail="OTP expired")
+        result = await db.db.users.insert_one(user_dict)
+        await db.db.users_otp.delete_one({"_id": otp_record["_id"]})
         
-    existing_user = await db.db.users.find_one({"email": data.email})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-        
-    hashed_password = get_password_hash(data.password)
-    user_dict = {"email": data.email, "hashed_password": hashed_password}
-    
-    result = await db.db.users.insert_one(user_dict)
-    await db.db.users_otp.delete_one({"_id": otp_record["_id"]})
-    
-    access_token = create_access_token(data={"sub": data.email, "user_id": str(result.inserted_id)})
-    refresh_token = create_refresh_token(data={"sub": data.email, "user_id": str(result.inserted_id)})
-    logger.info(f"Signup verified and account created for: {data.email}")
-    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+        access_token = create_access_token(data={"sub": data.email, "user_id": str(result.inserted_id)})
+        refresh_token = create_refresh_token(data={"sub": data.email, "user_id": str(result.inserted_id)})
+        logger.info(f"Signup verified and account created for: {data.email}")
+        return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unhandled error in verify-signup for {data.email}: {e}", exc_info=True)
+        raise
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
 @limiter.limit("5/minute")
