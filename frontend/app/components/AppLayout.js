@@ -1,10 +1,12 @@
 'use client';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 
 export default function AppLayout({ children, title = 'AyuSphere' }) {
     const { logout } = useAuth();
+    const pathname = usePathname();
     const [darkMode, setDarkMode] = useState(false);
 
     useEffect(() => {
@@ -30,10 +32,17 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
     return (
         <>
             <header>
-                <h1>
-                    <img src="/logo.svg" alt="AyuSphere" width="30" height="30" style={{ borderRadius: '8px' }} />
-                    {title}
-                </h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {pathname !== '/dashboard' && pathname !== '/' && (
+                        <Link href="/dashboard" className="premium-back-btn" title="Back to Dashboard">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></svg>
+                        </Link>
+                    )}
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                        <img src="/logo.svg" alt="AyuSphere" width="30" height="30" style={{ borderRadius: '8px' }} />
+                        {title}
+                    </h1>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button onClick={toggleDarkMode} className="theme-toggle" title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
                         {darkMode ? (
