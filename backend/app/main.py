@@ -162,3 +162,37 @@ async def root(request: Request):
 @app.get("/health")
 async def health(request: Request):
     return {"status": "healthy", "version": "2.0.0"}
+
+
+@app.get("/debug/verify-test")
+async def debug_verify_test(request: Request):
+    """Temporary diagnostic endpoint to test key subsystems."""
+    results = {}
+    
+    # Test 1: bcrypt password hashing
+    try:
+        from app.core.security import get_password_hash, verify_password
+        hashed = get_password_hash("TestPass1")
+        matches = verify_password("TestPass1", hashed)
+        results["bcrypt"] = {"status": "ok", "verify_matches": matches}
+    except Exception as e:
+        results["bcrypt"] = {"status": "error", "error": str(e)}
+    
+    # Test 2: JWT token creation
+    try:
+        from app.core.security import create_access_token, create_refresh_token
+        at = create_access_token(data={"sub": "test@test.com", "user_id": "test123"})
+        rt = create_refresh_token(data={"sub": "test@test.com", "user_id": "test123"})
+        results["jwt"] = {"status": "ok", "access_token_length": len(at), "refresh_token_length": len(rt)}
+    except Exception as e:
+        results["jwt"] = {"status": "error", "error": str(e)}
+    
+    # Test 3: MongoDB connectivity
+    try:
+        test_doc = await db.db.users.find_one({"email": "__debug_nonexistent__"})
+        results["mongodb"] = {"status": "ok", "in_memory": db._in_memory}
+    except Exception as e:
+        results["mongodb"] = {"status": "error", "error": str(e)}
+    
+    return results
+
