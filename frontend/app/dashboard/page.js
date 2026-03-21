@@ -194,6 +194,7 @@ export default function Dashboard() {
     return (
         <AppLayout title="AyuSphere">
             <NotificationBanner />
+            <div className="dashboard-layout">
             {countdown !== null && (
                 <div className="sos-modal-overlay">
                     <div className="sos-modal">
@@ -393,6 +394,7 @@ export default function Dashboard() {
                         </div>
                     </Link>
                 </div>
+            </div>
             </div>
 
             {showTracker && userCoords && (
