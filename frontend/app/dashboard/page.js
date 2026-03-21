@@ -223,157 +223,194 @@ export default function Dashboard() {
                 </div>
             )}
 
-            {/* Welcome Greeting — Vibrant Aura Style */}
-            <div className="greeting-section" style={{ animation: 'fade-in-down 1s var(--ease-apple)' }}>
-                <h2>
+            {/* Welcome Hero Section */}
+            <div style={{ textAlign: 'center', marginBottom: '0.25rem', animation: 'fade-in 0.5s ease' }}>
+                <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '2px', letterSpacing: '-0.5px' }}>
                     {new Date().getHours() < 12 ? '☀️ Good Morning' : new Date().getHours() < 17 ? '🌤 Good Afternoon' : '🌙 Good Evening'}
                 </h2>
-                <p style={{ letterSpacing: '0.1em', fontWeight: 600, opacity: 0.8 }}>
+                <p style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
                     {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
             </div>
 
-            <div className="sos-container" style={{ gap: '2.5rem', animation: 'scale-in 0.8s var(--ease-apple) 0.2s both' }}>
-                <button 
-                  className={`sos-button ${loading ? 'pulse-active' : ''} ${isListening ? 'listening-glow' : ''}`} 
-                  onClick={handleSOS} 
-                  disabled={loading}
-                >
+            <div className="sos-container" style={{ gap: '3rem', paddingBottom: '1.25rem' }}>
+                <button className={`sos-button ${loading ? 'pulse-active' : ''} ${isListening ? 'listening-glow' : ''}`} onClick={handleSOS} disabled={loading}>
                     {loading ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <span className="loading-spinner" style={{ width: '24px', height: '24px', marginBottom: '4px', borderColor: 'white', borderTopColor: 'transparent' }}></span>
-                            <span style={{ fontSize: '0.75rem', fontWeight: 800 }}>ALERTING</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="loading-spinner" style={{ width: '24px', height: '24px', borderWidth: '3.5px', marginBottom: '6px' }}></span>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 600, letterSpacing: '0px' }}>Alerting...</span>
                         </div>
                     ) : 'SOS'}
                 </button>
 
                 <button
                     onClick={toggleVoice}
-                    className="premium-card"
                     style={{
-                        background: isListening ? 'linear-gradient(135deg, #00C6FF, #0072FF)' : 'rgba(255,255,255,0.9)',
+                        background: isListening ? '#ef4444' : 'var(--white)',
                         color: isListening ? 'white' : 'var(--text-dark)',
-                        padding: '1.2rem 1.8rem',
+                        border: `2px solid ${isListening ? '#ef4444' : 'var(--border)'}`,
+                        padding: '12px 22px',
+                        borderRadius: '30px',
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        minWidth: '170px',
-                        border: 'none',
-                        boxShadow: isListening ? '0 15px 35px rgba(0, 114, 255, 0.4)' : '0 10px 30px rgba(0,0,0,0.05)',
-                        transition: 'all 0.4s var(--ease-apple)'
+                        justifyContent: 'center',
+                        gap: '4px',
+                        boxShadow: isListening ? '0 4px 15px rgba(239, 68, 68, 0.4)' : 'var(--shadow-sm)',
+                        transition: 'all 0.3s ease',
+                        flexShrink: 0,
+                        minWidth: '160px'
                     }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                             <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
                         </svg>
-                        <span style={{ fontWeight: 800, fontSize: '1rem' }}>{isListening ? 'Listening...' : 'Voice SOS'}</span>
+                        <span style={{ fontSize: '0.9rem' }}>{isListening ? 'Voice Active' : 'Enable Voice SOS'}</span>
                     </div>
                     {!isListening && (
-                        <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 600 }}>Say "Help" to activate</span>
+                        <span style={{ fontSize: '0.7rem', opacity: 0.7, fontWeight: 500 }}>Say "Help" to activate</span>
                     )}
                 </button>
             </div>
 
             {/* ── Emergency Actions ── */}
-            <div style={{ marginBottom: '2.5rem', animation: 'fade-slide-up 0.8s var(--ease-apple) 0.4s both' }}>
-                <span className="section-label">🚨 Emergency Actions</span>
-                <div className="action-grid-2">
-                    <a href="tel:108" className="premium-card bg-medical-red" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.6rem' }}>
-                        <div className="icon-badge" style={{ background: 'rgba(255,255,255,0.25)', width: '50px', height: '50px' }}>
-                            <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
+            <div style={{ marginBottom: '1.25rem' }}>
+                <h3 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-light)', marginBottom: '0.75rem', fontWeight: 700 }}>
+                    🚨 Emergency Actions
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <a href="tel:108" style={{
+                        display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem',
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white',
+                        borderRadius: '16px', textDecoration: 'none', fontWeight: 700, fontSize: '0.95rem',
+                        boxShadow: '0 8px 15px rgba(239,68,68,0.3)', transition: 'all 0.3s ease',
+                        animation: 'fade-in 0.4s ease'
+                    }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
                         </div>
                         <div>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Call Ambulance</h3>
-                            <div style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 600 }}>Dial 108 Emergency</div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>Call Ambulance</div>
+                            <div style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 500 }}>Dial 108 now</div>
                         </div>
                     </a>
-                    <button onClick={handleShareLocation} disabled={locationLoading} className="premium-card bg-medical-blue" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textAlign: 'left', border: 'none', cursor: 'pointer', padding: '1.6rem' }}>
-                        <div className="icon-badge" style={{ background: 'rgba(255,255,255,0.25)', width: '50px', height: '50px' }}>
+                    <button onClick={handleShareLocation} disabled={locationLoading} style={{
+                        display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem',
+                        background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white',
+                        borderRadius: '16px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem',
+                        boxShadow: '0 8px 15px rgba(59,130,246,0.3)', transition: 'all 0.3s ease',
+                        animation: 'fade-in 0.5s ease', fontFamily: 'inherit', textAlign: 'left'
+                    }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
                             {locationLoading ? (
-                                <span className="loading-spinner" style={{ width: '28px', height: '28px', borderColor: 'white', borderTopColor: 'transparent' }}></span>
+                                <span className="loading-spinner" style={{ width: '22px', height: '22px' }}></span>
                             ) : (
-                                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>
                             )}
                         </div>
                         <div>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Share Location</h3>
-                            <div style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 600 }}>Quick Alert</div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>{locationLoading ? 'Sharing...' : 'Share Location'}</div>
+                            <div style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 500 }}>Send via WhatsApp</div>
                         </div>
                     </button>
                 </div>
             </div>
 
             {/* ── Smart Tools ── */}
-            <div style={{ marginBottom: '2.5rem', animation: 'fade-slide-up 0.8s var(--ease-apple) 0.6s both' }}>
-                <span className="section-label">🩺 Smart Tools</span>
-                <div className="action-grid-3">
-                    <Link href="/symptom-checker" className="action-card premium-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
-                        <div className="icon-badge" style={{ marginBottom: '12px', background: 'rgba(255, 51, 102, 0.1)', color: '#FF3366', width: '52px', height: '52px' }}>
-                            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
+            <div style={{ marginBottom: '1.25rem' }}>
+                <h3 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-light)', marginBottom: '0.75rem', fontWeight: 700 }}>
+                    🩺 Smart Tools
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                    <Link href="/symptom-checker" className="action-card" style={{ padding: '1.25rem 0.75rem' }}>
+                        <div className="icon-badge" style={{ width: '52px', height: '52px', background: 'rgba(245,158,11,0.12)' }}>
+                            <svg viewBox="0 0 24 24" width="26" height="26" fill="#f59e0b"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
                         </div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>Symptom Check</span>
+                        <span style={{ fontSize: '0.85rem' }}>Symptom Check</span>
                     </Link>
-                    <Link href="/chatbot" className="action-card premium-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
-                        <div className="icon-badge" style={{ marginBottom: '12px', background: 'rgba(0, 114, 255, 0.1)', color: '#0072FF', width: '52px', height: '52px' }}>
-                            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 11H7V9h2v2zm4 0h-2V9h2v2zm4 0h-2V9h2v2z" /></svg>
+                    <Link href="/chatbot" className="action-card" style={{ padding: '1.25rem 0.75rem' }}>
+                        <div className="icon-badge" style={{ width: '52px', height: '52px', background: 'rgba(99,102,241,0.12)' }}>
+                            <svg viewBox="0 0 24 24" width="26" height="26" fill="#6366f1"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 11H7V9h2v2zm4 0h-2V9h2v2zm4 0h-2V9h2v2z" /></svg>
                         </div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>AyuSphere AI</span>
+                        <span style={{ fontSize: '0.85rem' }}>Dr. AyuSphere</span>
                     </Link>
-                    <Link href="/risk-assessment" className="action-card premium-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
-                        <div className="icon-badge" style={{ marginBottom: '12px', background: 'rgba(186, 0, 53, 0.1)', color: '#BA0035', width: '52px', height: '52px' }}>
-                            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
+                    <Link href="/risk-assessment" className="action-card" style={{ padding: '1.25rem 0.75rem' }}>
+                        <div className="icon-badge" style={{ width: '52px', height: '52px', background: 'rgba(16,185,129,0.12)' }}>
+                            <svg viewBox="0 0 24 24" width="26" height="26" fill="#10b981"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
                         </div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>Risk Analysis</span>
+                        <span style={{ fontSize: '0.85rem' }}>Risk Analysis</span>
                     </Link>
                 </div>
             </div>
 
             {/* ── Health Hub ── */}
-            <div style={{ marginBottom: '2rem', animation: 'fade-slide-up 0.8s var(--ease-apple) 0.8s both' }}>
-                <span className="section-label">💊 Health Hub</span>
-                <div className="action-grid-2">
-                    <Link href="/analytics" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.4rem' }}>
-                        <div className="icon-badge" style={{ background: 'rgba(186, 0, 53, 0.08)', color: '#BA0035', width: '48px', height: '48px' }}>
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
+            <div style={{ marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'var(--text-light)', marginBottom: '0.75rem', fontWeight: 700 }}>
+                    💊 Health Hub
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <Link href="/analytics" style={{
+                        display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem',
+                        background: 'var(--white)', borderRadius: '16px', textDecoration: 'none',
+                        border: '1px solid var(--border)', transition: 'all 0.3s ease',
+                        boxShadow: 'var(--shadow-sm)', color: 'var(--text-dark)'
+                    }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(236,72,153,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#ec4899"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
                         </div>
                         <div>
-                            <h3 style={{ fontWeight: 800 }}>Analytics</h3>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600 }}>Daily Trends</div>
+                            <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Analytics</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Health trends</div>
                         </div>
                     </Link>
-                    <Link href="/medical-id" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.4rem' }}>
-                        <div className="icon-badge" style={{ background: 'rgba(0, 114, 255, 0.08)', color: '#0072FF', width: '48px', height: '48px' }}>
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M20 7h-5V4c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9-3h2v5h-2V4zm0 12h-2v-3H7v-2h2V9h2v2h2v2h-2v3z" /></svg>
+                    <Link href="/medical-id" style={{
+                        display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem',
+                        background: 'var(--white)', borderRadius: '16px', textDecoration: 'none',
+                        border: '1px solid var(--border)', transition: 'all 0.3s ease',
+                        boxShadow: 'var(--shadow-sm)', color: 'var(--text-dark)'
+                    }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(14,165,233,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#0ea5e9"><path d="M20 7h-5V4c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9-3h2v5h-2V4zm0 12h-2v-3H7v-2h2V9h2v2h2v2h-2v3z" /></svg>
                         </div>
                         <div>
-                            <h3 style={{ fontWeight: 800 }}>Medical ID</h3>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600 }}>First-Aid Info</div>
+                            <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Medical ID</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Health passport</div>
                         </div>
                     </Link>
-                    <Link href="/hospitals" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.4rem' }}>
-                        <div className="icon-badge" style={{ background: 'rgba(186, 0, 53, 0.08)', color: '#BA0035', width: '48px', height: '48px' }}>
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
+                    <Link href="/hospitals" style={{
+                        display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem',
+                        background: 'var(--white)', borderRadius: '16px', textDecoration: 'none',
+                        border: '1px solid var(--border)', transition: 'all 0.3s ease',
+                        boxShadow: 'var(--shadow-sm)', color: 'var(--text-dark)'
+                    }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(139,92,246,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#8b5cf6"><path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
                         </div>
                         <div>
-                            <h3 style={{ fontWeight: 800 }}>Hospitals</h3>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600 }}>Find ER Units</div>
+                            <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Hospitals</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Near you</div>
                         </div>
                     </Link>
-                    <Link href="/profile" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.4rem' }}>
-                        <div className="icon-badge" style={{ background: 'rgba(0, 114, 255, 0.08)', color: '#0072FF', width: '48px', height: '48px' }}>
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" /></svg>
+                    <Link href="/profile" style={{
+                        display: 'flex', alignItems: 'center', gap: '12px', padding: '1rem',
+                        background: 'var(--white)', borderRadius: '16px', textDecoration: 'none',
+                        border: '1px solid var(--border)', transition: 'all 0.3s ease',
+                        boxShadow: 'var(--shadow-sm)', color: 'var(--text-dark)'
+                    }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(244,63,94,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="#f43f5e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" /></svg>
                         </div>
                         <div>
-                            <h3 style={{ fontWeight: 800 }}>Profile</h3>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600 }}>Health Records</div>
+                            <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>My Profile</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Medical info</div>
                         </div>
                     </Link>
                 </div>
             </div>
-
 
             {showTracker && userCoords && (
                 <AmbulanceTracker userLocation={userCoords} onClose={() => setShowTracker(false)} />
