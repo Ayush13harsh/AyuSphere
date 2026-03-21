@@ -108,40 +108,38 @@ input[type="submit"]:active:not(:disabled),
   transition-duration: 0.08s;
 }
 
+/* Mesh Gradient Backdrop */
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
   color: var(--text-dark);
   min-height: 100vh;
-  /* Multi-layer cinematic medical gradient */
-  background: 
-    radial-gradient(ellipse at 15% 10%, rgba(0, 72, 141, 0.05) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 15%, rgba(186, 0, 53, 0.04) 0%, transparent 40%),
-    linear-gradient(172deg, var(--surface) 0%, var(--surface-container-low) 100%);
-  background-attachment: fixed;
+  background: #fdfdfd; 
   position: relative;
   overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  display: flex;
+  flex-direction: column;
 }
 
-h1, h2, h3, h4 {
-  font-family: 'Manrope', sans-serif;
-  letter-spacing: -0.02em;
-}
-
-/* Subtle noise overlay */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.02;
-  pointer-events: none;
-  z-index: 1000;
+  background: 
+    radial-gradient(circle at 0% 0%, rgba(255, 51, 102, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(0, 198, 255, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(255, 51, 102, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(0, 198, 255, 0.08) 0%, transparent 45%);
+  z-index: -2;
+  animation: mesh-breathing 12s ease-in-out infinite alternate;
 }
 
-/* Animated ECG heartbeat line — Luminescent Guardian Style */
+@keyframes mesh-breathing {
+  0% { transform: scale(1); filter: hue-rotate(0deg); }
+  100% { transform: scale(1.15); filter: hue-rotate(15deg); }
+}
+
+/* Vibrant Heartbeat Line */
 body::after {
   content: '';
   position: fixed;
@@ -149,12 +147,13 @@ body::after {
   left: 0;
   width: 200vw;
   height: 140px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 140' preserveAspectRatio='none'%3E%3Cpath d='M0,70 L250,70 L275,15 L300,125 L325,70 L1000,70' fill='none' stroke='%23ba0035' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round' opacity='0.05'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 140' preserveAspectRatio='none'%3E%3Cpath d='M0,70 L250,70 L275,15 L300,125 L325,70 L1000,70' fill='none' stroke='%23ff3366' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' opacity='0.15'/%3E%3C/svg%3E");
   background-repeat: repeat-x;
   background-size: 1000px 140px;
-  animation: ecg-slide 12s linear infinite;
+  animation: ecg-slide 10s linear infinite;
   pointer-events: none;
   z-index: -1;
+  filter: drop-shadow(0 0 10px rgba(255, 51, 102, 0.4));
 }
 
 /* ── Layout & Typography Utilities ── */
@@ -189,32 +188,27 @@ body::after {
 }
 
 /* ── Premium Card Utilities ── */
-.premium-card {
-  background: var(--surface-container-lowest);
-  backdrop-filter: var(--glass-blur) var(--glass-saturate);
-  -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--outline-variant);
-  box-shadow: var(--shadow-ambient);
-  padding: 1.4rem;
-  transition: all 0.3s var(--ease-apple);
-}
-
-.premium-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0px 30px 60px rgba(25, 28, 30, 0.1);
-}
-
 .bg-medical-red {
-  background: linear-gradient(135deg, #ba0035 0%, #e21e49 100%) !important;
+  background: linear-gradient(135deg, #FF3366 0%, #BA0035 100%) !important;
   color: white !important;
-  box-shadow: 0 12px 30px rgba(186, 0, 53, 0.25) !important;
+  box-shadow: 0 15px 35px rgba(255, 51, 102, 0.4) !important;
+  border: none !important;
 }
 
 .bg-medical-blue {
-  background: linear-gradient(135deg, #00488d 0%, #005fb8 100%) !important;
+  background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%) !important;
   color: white !important;
-  box-shadow: 0 12px 30px rgba(0, 72, 141, 0.2) !important;
+  box-shadow: 0 15px 35px rgba(0, 114, 255, 0.3) !important;
+  border: none !important;
+}
+
+.premium-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06) !important;
 }
 
 .action-grid-2 {
@@ -406,76 +400,80 @@ main {
 .alert-success { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
 
 /* ══════════════════════════════════════════════════
-   SOS BUTTON — Luminescent Guardian Style
+   SOS BUTTON — High Intensity (Vibrant Aura)
    ══════════════════════════════════════════════════ */
 .sos-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem 0 3rem 0;
+  padding: 3rem 0;
   position: relative;
 }
 
 .sos-button {
-  width: 140px;
-  height: 140px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ff5e7d 0%, var(--secondary-guardian) 50%, var(--on-secondary-variant) 100%);
+  background: conic-gradient(from 180deg at 50% 50%, #ff1a4a, #dc0030, #ff1a4a);
   color: white;
-  font-size: 2.2rem;
+  font-size: 2.6rem;
   font-weight: 800;
   border: none;
   cursor: pointer;
   box-shadow: 
-    0 10px 40px rgba(186, 0, 53, 0.3),
-    inset 0 -4px 10px rgba(0, 0, 0, 0.2),
-    inset 0 4px 10px rgba(255, 255, 255, 0.3);
-  transition: all 0.3s var(--ease-apple);
-  animation: sos-breathe 4s infinite ease-in-out;
-  letter-spacing: 2px;
+    0 15px 45px rgba(186, 0, 53, 0.4),
+    0 0 60px rgba(186, 0, 53, 0.2),
+    inset 0 4px 12px rgba(255, 255, 255, 0.4);
+  transition: all 0.4s var(--ease-apple);
+  animation: sos-vibrant-breathe 3s infinite ease-in-out;
   position: relative;
   z-index: 10;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Stitch Outer Glow: Secondary fixed dim at 30% opacity */
+/* Orbiting Glow Ring */
+.sos-button::after {
+  content: '';
+  position: absolute;
+  top: -15px; left: -15px; right: -15px; bottom: -15px;
+  border: 2px solid rgba(255, 26, 74, 0.3);
+  border-radius: 50%;
+  animation: orbit-rotate 6s infinite linear;
+}
+
+/* Pulse Outer Glow */
 .sos-button::before {
   content: '';
   position: absolute;
-  top: -20px; left: -20px; right: -20px; bottom: -20px;
+  inset: -30px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 179, 182, 0.25) 0%, transparent 75%);
+  background: radial-gradient(circle, rgba(255, 26, 74, 0.4) 0%, transparent 70%);
   z-index: -1;
-  animation: glow-pulse 4s infinite ease-in-out;
+  animation: mega-pulse 3s infinite ease-out;
 }
 
-@keyframes glow-pulse {
-  0%, 100% { transform: scale(0.9); opacity: 0.2; }
-  50% { transform: scale(1.1); opacity: 0.5; }
+@keyframes mega-pulse {
+  0% { transform: scale(0.85); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
 }
 
-@keyframes sos-breathe {
-  0%, 100% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.05); filter: brightness(1.1); }
+@keyframes orbit-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sos-vibrant-breathe {
+  0%, 100% { transform: scale(1); filter: saturate(1); }
+  50% { transform: scale(1.08); filter: saturate(1.3); }
 }
 
 .sos-button:hover {
-  transform: scale(1.08);
-  box-shadow: 0 15px 50px rgba(186, 0, 53, 0.45);
+  transform: scale(1.12);
+  box-shadow: 0 20px 60px rgba(186, 0, 53, 0.6);
 }
 
 .sos-button:active {
-  transform: scale(0.95);
-  transition-duration: 0.08s;
-}
-
-.sos-button.listening-glow {
-  box-shadow: 0 0 40px rgba(239, 68, 68, 0.7), 0 0 80px rgba(239, 68, 68, 0.3), inset 0 0 20px rgba(255,255,255,0.4);
-  animation: listening-pulse 1.2s infinite alternate;
-}
-
-@keyframes listening-pulse {
-  0% { transform: scale(1); box-shadow: 0 0 30px rgba(239, 68, 68, 0.6); }
-  100% { transform: scale(1.06); box-shadow: 0 0 50px rgba(239, 68, 68, 0.9); }
+  transform: scale(0.9);
 }
 
 /* ══════════════════════════════════════════════════
@@ -808,3 +806,62 @@ main {
 }
 
 @keyframes banner-slide-in { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* ══════════════════════════════════════════════════
+   HIGH-ENERGY ANIMATIONS — Vibrant Aura
+   ══════════════════════════════════════════════════ */
+
+@keyframes fade-in-down {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ecg-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(-1000px); }
+}
+
+/* Hover Shimmer Effect */
+.premium-card::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 80%
+  );
+  transform: rotate(35deg) translateX(-150%);
+  transition: transform 0.8s var(--ease-apple);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.premium-card:hover::after {
+  transform: rotate(35deg) translateX(150%);
+}
+
+.icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  transition: all 0.3s var(--ease-apple);
+}
+
+.premium-card:hover .icon-badge {
+  transform: scale(1.15) rotate(5deg);
+  filter: drop-shadow(0 0 12px currentColor);
+}

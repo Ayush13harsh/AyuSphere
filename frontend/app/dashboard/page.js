@@ -223,17 +223,17 @@ export default function Dashboard() {
                 </div>
             )}
 
-            {/* Welcome Greeting — Luminescent Guardian Style */}
-            <div className="greeting-section">
+            {/* Welcome Greeting — Vibrant Aura Style */}
+            <div className="greeting-section" style={{ animation: 'fade-in-down 1s var(--ease-apple)' }}>
                 <h2>
                     {new Date().getHours() < 12 ? '☀️ Good Morning' : new Date().getHours() < 17 ? '🌤 Good Afternoon' : '🌙 Good Evening'}
                 </h2>
-                <p>
+                <p style={{ letterSpacing: '0.1em', fontWeight: 600, opacity: 0.8 }}>
                     {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
             </div>
 
-            <div className="sos-container" style={{ gap: '2rem' }}>
+            <div className="sos-container" style={{ gap: '2.5rem', animation: 'scale-in 0.8s var(--ease-apple) 0.2s both' }}>
                 <button 
                   className={`sos-button ${loading ? 'pulse-active' : ''} ${isListening ? 'listening-glow' : ''}`} 
                   onClick={handleSOS} 
@@ -241,8 +241,8 @@ export default function Dashboard() {
                 >
                     {loading ? (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <span className="loading-spinner" style={{ width: '20px', height: '20px', marginBottom: '4px' }}></span>
-                            <span style={{ fontSize: '0.8rem', letterSpacing: '0' }}>ALERTING</span>
+                            <span className="loading-spinner" style={{ width: '24px', height: '24px', marginBottom: '4px', borderColor: 'white', borderTopColor: 'transparent' }}></span>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800 }}>ALERTING</span>
                         </div>
                     ) : 'SOS'}
                 </button>
@@ -251,122 +251,124 @@ export default function Dashboard() {
                     onClick={toggleVoice}
                     className="premium-card"
                     style={{
-                        background: isListening ? 'var(--secondary-guardian)' : 'var(--surface-container-lowest)',
+                        background: isListening ? 'linear-gradient(135deg, #00C6FF, #0072FF)' : 'rgba(255,255,255,0.9)',
                         color: isListening ? 'white' : 'var(--text-dark)',
-                        padding: '1rem 1.5rem',
+                        padding: '1.2rem 1.8rem',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '4px',
+                        gap: '6px',
                         cursor: 'pointer',
-                        minWidth: '160px',
-                        border: isListening ? 'none' : '1px solid var(--outline-variant)'
+                        minWidth: '170px',
+                        border: 'none',
+                        boxShadow: isListening ? '0 15px 35px rgba(0, 114, 255, 0.4)' : '0 10px 30px rgba(0,0,0,0.05)',
+                        transition: 'all 0.4s var(--ease-apple)'
                     }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                             <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
                         </svg>
-                        <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{isListening ? 'Voice Active' : 'Voice SOS'}</span>
+                        <span style={{ fontWeight: 800, fontSize: '1rem' }}>{isListening ? 'Listening...' : 'Voice SOS'}</span>
                     </div>
                     {!isListening && (
-                        <span style={{ fontSize: '0.7rem', opacity: 0.7, fontWeight: 500 }}>Say "Help" to activate</span>
+                        <span style={{ fontSize: '0.75rem', opacity: 0.7, fontWeight: 600 }}>Say "Help" to activate</span>
                     )}
                 </button>
             </div>
 
             {/* ── Emergency Actions ── */}
-            <div style={{ marginBottom: '2.5rem' }}>
+            <div style={{ marginBottom: '2.5rem', animation: 'fade-slide-up 0.8s var(--ease-apple) 0.4s both' }}>
                 <span className="section-label">🚨 Emergency Actions</span>
                 <div className="action-grid-2">
-                    <a href="tel:108" className="premium-card bg-medical-red" style={{ display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none' }}>
-                        <div className="icon-badge" style={{ background: 'rgba(255,255,255,0.2)' }}>
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
+                    <a href="tel:108" className="premium-card bg-medical-red" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.6rem' }}>
+                        <div className="icon-badge" style={{ background: 'rgba(255,255,255,0.25)', width: '50px', height: '50px' }}>
+                            <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
                         </div>
                         <div>
-                            <h3>Ambulance</h3>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>Dial 108 now</div>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Call Ambulance</h3>
+                            <div style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 600 }}>Dial 108 Emergency</div>
                         </div>
                     </a>
-                    <button onClick={handleShareLocation} disabled={locationLoading} className="premium-card bg-medical-blue" style={{ display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left', border: 'none', cursor: 'pointer' }}>
-                        <div className="icon-badge" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                    <button onClick={handleShareLocation} disabled={locationLoading} className="premium-card bg-medical-blue" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textAlign: 'left', border: 'none', cursor: 'pointer', padding: '1.6rem' }}>
+                        <div className="icon-badge" style={{ background: 'rgba(255,255,255,0.25)', width: '50px', height: '50px' }}>
                             {locationLoading ? (
-                                <span className="loading-spinner" style={{ width: '24px', height: '24px' }}></span>
+                                <span className="loading-spinner" style={{ width: '28px', height: '28px', borderColor: 'white', borderTopColor: 'transparent' }}></span>
                             ) : (
-                                <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>
+                                <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>
                             )}
                         </div>
                         <div>
-                            <h3>Location</h3>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>WhatsApp Alert</div>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Share Location</h3>
+                            <div style={{ fontSize: '0.8rem', opacity: 0.9, fontWeight: 600 }}>Quick Alert</div>
                         </div>
                     </button>
                 </div>
             </div>
 
             {/* ── Smart Tools ── */}
-            <div style={{ marginBottom: '2.5rem' }}>
+            <div style={{ marginBottom: '2.5rem', animation: 'fade-slide-up 0.8s var(--ease-apple) 0.6s both' }}>
                 <span className="section-label">🩺 Smart Tools</span>
                 <div className="action-grid-3">
-                    <Link href="/symptom-checker" className="action-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div className="icon-badge" style={{ marginBottom: '8px' }}>
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="var(--primary-guardian)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
+                    <Link href="/symptom-checker" className="action-card premium-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
+                        <div className="icon-badge" style={{ marginBottom: '12px', background: 'rgba(255, 51, 102, 0.1)', color: '#FF3366', width: '52px', height: '52px' }}>
+                            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
                         </div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Symptom Check</span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>Symptom Check</span>
                     </Link>
-                    <Link href="/chatbot" className="action-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div className="icon-badge" style={{ marginBottom: '8px' }}>
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="var(--primary-guardian)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 11H7V9h2v2zm4 0h-2V9h2v2zm4 0h-2V9h2v2z" /></svg>
+                    <Link href="/chatbot" className="action-card premium-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
+                        <div className="icon-badge" style={{ marginBottom: '12px', background: 'rgba(0, 114, 255, 0.1)', color: '#0072FF', width: '52px', height: '52px' }}>
+                            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 11H7V9h2v2zm4 0h-2V9h2v2zm4 0h-2V9h2v2z" /></svg>
                         </div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>AyuSphere AI</span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>AyuSphere AI</span>
                     </Link>
-                    <Link href="/risk-assessment" className="action-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div className="icon-badge" style={{ marginBottom: '8px' }}>
-                            <svg viewBox="0 0 24 24" width="28" height="28" fill="var(--primary-guardian)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
+                    <Link href="/risk-assessment" className="action-card premium-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1.5rem' }}>
+                        <div className="icon-badge" style={{ marginBottom: '12px', background: 'rgba(186, 0, 53, 0.1)', color: '#BA0035', width: '52px', height: '52px' }}>
+                            <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
                         </div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Risk Analysis</span>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>Risk Analysis</span>
                     </Link>
                 </div>
             </div>
 
             {/* ── Health Hub ── */}
-            <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '2rem', animation: 'fade-slide-up 0.8s var(--ease-apple) 0.8s both' }}>
                 <span className="section-label">💊 Health Hub</span>
                 <div className="action-grid-2">
-                    <Link href="/analytics" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none' }}>
-                        <div className="icon-badge">
-                            <svg viewBox="0 0 24 24" width="26" height="26" fill="var(--primary-guardian)"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
+                    <Link href="/analytics" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.4rem' }}>
+                        <div className="icon-badge" style={{ background: 'rgba(186, 0, 53, 0.08)', color: '#BA0035', width: '48px', height: '48px' }}>
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
                         </div>
                         <div>
-                            <h3>Analytics</h3>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Daily Trends</div>
+                            <h3 style={{ fontWeight: 800 }}>Analytics</h3>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600 }}>Daily Trends</div>
                         </div>
                     </Link>
-                    <Link href="/medical-id" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none' }}>
-                        <div className="icon-badge">
-                            <svg viewBox="0 0 24 24" width="26" height="26" fill="var(--primary-guardian)"><path d="M20 7h-5V4c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9-3h2v5h-2V4zm0 12h-2v-3H7v-2h2V9h2v2h2v2h-2v3z" /></svg>
+                    <Link href="/medical-id" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.4rem' }}>
+                        <div className="icon-badge" style={{ background: 'rgba(0, 114, 255, 0.08)', color: '#0072FF', width: '48px', height: '48px' }}>
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M20 7h-5V4c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9-3h2v5h-2V4zm0 12h-2v-3H7v-2h2V9h2v2h2v2h-2v3z" /></svg>
                         </div>
                         <div>
-                            <h3>Medical ID</h3>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>First-Aid Info</div>
+                            <h3 style={{ fontWeight: 800 }}>Medical ID</h3>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600 }}>First-Aid Info</div>
                         </div>
                     </Link>
-                    <Link href="/hospitals" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none' }}>
-                        <div className="icon-badge">
-                            <svg viewBox="0 0 24 24" width="26" height="26" fill="var(--primary-guardian)"><path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
+                    <Link href="/hospitals" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.4rem' }}>
+                        <div className="icon-badge" style={{ background: 'rgba(186, 0, 53, 0.08)', color: '#BA0035', width: '48px', height: '48px' }}>
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
                         </div>
                         <div>
-                            <h3>Hospitals</h3>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Find ER Units</div>
+                            <h3 style={{ fontWeight: 800 }}>Hospitals</h3>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600 }}>Find ER Units</div>
                         </div>
                     </Link>
-                    <Link href="/profile" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none' }}>
-                        <div className="icon-badge">
-                            <svg viewBox="0 0 24 24" width="26" height="26" fill="var(--primary-guardian)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" /></svg>
+                    <Link href="/profile" className="premium-card" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', textDecoration: 'none', padding: '1.4rem' }}>
+                        <div className="icon-badge" style={{ background: 'rgba(0, 114, 255, 0.08)', color: '#0072FF', width: '48px', height: '48px' }}>
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" /></svg>
                         </div>
                         <div>
-                            <h3>Profile</h3>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Health Records</div>
+                            <h3 style={{ fontWeight: 800 }}>Profile</h3>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600 }}>Health Records</div>
                         </div>
                     </Link>
                 </div>
