@@ -993,16 +993,16 @@ main {
   font-weight: 900;
   color: #ffffff;
   letter-spacing: 2px;
-  background: linear-gradient(90deg, #f43f5e, #3b82f6);
+  background: linear-gradient(135deg, #FDE047 0%, #F59E0B 50%, #EA580C 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(244, 63, 94, 0.3));
+  filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.4));
   transition: all 0.3s ease;
 }
 
 .author-name:hover {
-  filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.7));
+  filter: drop-shadow(0 4px 12px rgba(253, 224, 71, 0.7));
   letter-spacing: 2.5px;
 }
 
