@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
+from app.api.auth import get_current_user
 import re
 
 router = APIRouter()
@@ -84,7 +85,7 @@ SYMPTOM_RULES = [
 ]
 
 @router.post("/check", response_model=SymptomResponse)
-async def check_symptoms(request: SymptomRequest):
+async def check_symptoms(request: SymptomRequest, current_user: dict = Depends(get_current_user)):
     text = request.symptoms_text.lower()
     
     # Check if fever is explicitly ticked

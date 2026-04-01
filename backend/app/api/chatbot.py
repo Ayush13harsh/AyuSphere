@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
+from app.api.auth import get_current_user
+from app.core.limiter import limiter
 import httpx
 import json
 import os
@@ -78,8 +80,9 @@ async def call_hf_llm(user_message: str) -> str | None:
 
 
 @router.post("/message", response_model=ChatResponse)
-async def process_chat(request: ChatRequest):
-    text = request.message
+@limiter.limit("15/minute")
+async def process_chat(request: Request, chat_request: ChatRequest, current_user: dict = Depends(get_current_user)):
+    text = chat_request.message
 
     # Step 1: Try HF LLM for a rich, intelligent response
     try:

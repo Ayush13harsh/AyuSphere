@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.services.email_service import send_otp_email
 from bson import ObjectId
 import secrets
+import hashlib
 import logging
 from datetime import datetime, timedelta, timezone
 
@@ -44,11 +45,12 @@ async def signup(request: Request, user: UserCreate):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
+    otp_hash = hashlib.sha256(otp.encode()).hexdigest()
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
     
     await db.db.users_otp.update_one(
         {"email": user.email, "purpose": "signup"},
-        {"$set": {"otp": otp, "expires_at": expires_at, "attempts": 0}},
+        {"$set": {"otp_hash": otp_hash, "expires_at": expires_at, "attempts": 0}},
         upsert=True
     )
         
@@ -69,7 +71,7 @@ async def verify_signup(request: Request, data: VerifySignupRequest):
         otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "signup"})
         logger.info(f"[verify-signup] Step 1 - OTP record found: {otp_record is not None}")
         
-        if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
+        if not otp_record or not secrets.compare_digest(otp_record.get("otp_hash", ""), hashlib.sha256(str(data.otp).encode()).hexdigest()):
             if otp_record:
                 attempts = otp_record.get("attempts", 0) + 1
                 if attempts >= 3:
@@ -148,11 +150,12 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest):
         return {"message": "If an account exists, an OTP has been sent."}
         
     otp = "".join([str(secrets.randbelow(10)) for _ in range(6)])
+    otp_hash = hashlib.sha256(otp.encode()).hexdigest()
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
     
     await db.db.users_otp.update_one(
         {"email": data.email, "purpose": "reset_password"},
-        {"$set": {"otp": otp, "expires_at": expires_at, "attempts": 0}},
+        {"$set": {"otp_hash": otp_hash, "expires_at": expires_at, "attempts": 0}},
         upsert=True
     )
         
@@ -168,7 +171,7 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest):
 async def reset_password(request: Request, data: ResetPasswordRequest):
     logger.info(f"Reset-password attempt for email: {data.email}")
     otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "reset_password"})
-    if not otp_record or not secrets.compare_digest(str(otp_record["otp"]), str(data.otp)):
+    if not otp_record or not secrets.compare_digest(otp_record.get("otp_hash", ""), hashlib.sha256(str(data.otp).encode()).hexdigest()):
         if otp_record:
             attempts = otp_record.get("attempts", 0) + 1
             if attempts >= 3:

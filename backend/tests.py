@@ -2,10 +2,17 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.db.mongodb import db
+from app.core.config import settings
+import hashlib
+
+@pytest.fixture(params=["asyncio"])
+def anyio_backend():
+    return "asyncio"
 
 @pytest.fixture(autouse=True)
 async def setup_db():
     """Ensure the in-memory database is initialized for tests."""
+    settings.ALLOW_IN_MEMORY_DB = True
     await db.connect()
     yield
     await db.disconnect()
@@ -27,14 +34,17 @@ async def test_signup_and_login():
         assert signup_res.status_code == 200
         assert "OTP" in signup_res.json()["message"]
 
-        # Step 2: Retrieve OTP from in-memory DB and verify signup
-        otp_record = await db.db.users_otp.find_one({"email": "test@test.com", "purpose": "signup"})
-        assert otp_record is not None
-        otp = otp_record["otp"]
+        # Step 2: Set a known OTP hash in the in-memory DB for testing
+        known_otp = "123456"
+        known_otp_hash = hashlib.sha256(known_otp.encode()).hexdigest()
+        await db.db.users_otp.update_one(
+            {"email": "test@test.com", "purpose": "signup"},
+            {"$set": {"otp_hash": known_otp_hash}}
+        )
 
         verify_res = await ac.post("/api/v1/auth/verify-signup", json={
             "email": "test@test.com",
-            "otp": otp,
+            "otp": known_otp,
             "password": "Password1"
         })
         assert verify_res.status_code == 201

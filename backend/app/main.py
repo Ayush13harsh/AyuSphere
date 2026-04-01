@@ -18,39 +18,20 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if settings.SECRET_KEY == "yoursecretkey_changethis_in_production":
-        logger.warning(
-            "WARNING: Using default SECRET_KEY. "
-            "Set a strong, unique SECRET_KEY environment variable before deploying to production."
-        )
-    
-    # Heartbeat to monitor if the process is alive during startup
-    import asyncio
-    async def heartbeat():
-        try:
-            while True:
-                logger.info("HEARTBEAT: App is alive and event loop is running.")
-                await asyncio.sleep(10)
-        except asyncio.CancelledError:
-            pass
-            
-    heartbeat_task = asyncio.create_task(heartbeat())
-    
     await db.connect()
+    logger.info("AyuSphere API started successfully.")
     yield
-    heartbeat_task.cancel()
     await db.disconnect()
 
 
 app = FastAPI(title="AyuSphere API", version="2.0.0", lifespan=lifespan)
 
-# Radical Request Logging Middleware
+# Request logging middleware — no sensitive headers logged
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    logger.info(f"INCOMING REQUEST: {request.method} {request.url.path}")
-    logger.info(f"HEADERS: {dict(request.headers)}")
+    logger.info(f"REQUEST: {request.method} {request.url.path}")
     response = await call_next(request)
-    logger.info(f"RESPONSE STATUS: {response.status_code}")
+    logger.info(f"RESPONSE: {request.method} {request.url.path} -> {response.status_code}")
     return response
 
 app.state.limiter = limiter
@@ -77,16 +58,18 @@ app.add_middleware(
 def safe_cors_json_response(status_code: int, content: dict, request: Request):
     """
     Creates a JSONResponse with explicit CORS headers.
-    This is a fallback for when middleware might be bypassed or fail.
+    Only reflects back origins that are in the allowed list.
     """
-    origin = request.headers.get("origin") or "*"
+    origin = request.headers.get("origin", "")
     
-    headers = {
-        "Access-Control-Allow-Origin": origin,
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Headers": "*"
-    }
+    headers = {}
+    if origin and origin in _allowed_origins:
+        headers = {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type"
+        }
     
     return JSONResponse(
         status_code=status_code,
@@ -163,36 +146,4 @@ async def root(request: Request):
 async def health(request: Request):
     return {"status": "healthy", "version": "2.0.0"}
 
-
-@app.get("/debug/verify-test")
-async def debug_verify_test(request: Request):
-    """Temporary diagnostic endpoint to test key subsystems."""
-    results = {}
-    
-    # Test 1: bcrypt password hashing
-    try:
-        from app.core.security import get_password_hash, verify_password
-        hashed = get_password_hash("TestPass1")
-        matches = verify_password("TestPass1", hashed)
-        results["bcrypt"] = {"status": "ok", "verify_matches": matches}
-    except Exception as e:
-        results["bcrypt"] = {"status": "error", "error": str(e)}
-    
-    # Test 2: JWT token creation
-    try:
-        from app.core.security import create_access_token, create_refresh_token
-        at = create_access_token(data={"sub": "test@test.com", "user_id": "test123"})
-        rt = create_refresh_token(data={"sub": "test@test.com", "user_id": "test123"})
-        results["jwt"] = {"status": "ok", "access_token_length": len(at), "refresh_token_length": len(rt)}
-    except Exception as e:
-        results["jwt"] = {"status": "error", "error": str(e)}
-    
-    # Test 3: MongoDB connectivity
-    try:
-        test_doc = await db.db.users.find_one({"email": "__debug_nonexistent__"})
-        results["mongodb"] = {"status": "ok", "in_memory": db._in_memory}
-    except Exception as e:
-        results["mongodb"] = {"status": "error", "error": str(e)}
-    
-    return results
 
