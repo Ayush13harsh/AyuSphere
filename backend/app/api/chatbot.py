@@ -71,7 +71,7 @@ async def call_gemini_llm(user_message: str) -> str:
         ],
         "generationConfig": {
             "temperature": 0.7,
-            "maxOutputTokens": 250,
+            "maxOutputTokens": 1024,
         }
     }
 
