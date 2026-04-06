@@ -46,6 +46,10 @@ export default function Hospitals() {
         }, () => {
             setError('Unable to retrieve location. Please enable location services.');
             setLoading(false);
+        }, {
+            enableHighAccuracy: false,  // Use fast Wi-Fi/Cell tower triangulation
+            maximumAge: 300000,         // Use 5-minute cached location instantly
+            timeout: 8000               // Don't wait forever
         });
     }, []);
 

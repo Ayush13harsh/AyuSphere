@@ -47,14 +47,10 @@ export default function Chatbot() {
             
             // Execute Agentic Actions if returned by AI
             if (data.action === "CALL_AMBULANCE") {
-                setTimeout(() => {
-                    window.location.href = 'tel:108';
-                }, 1500);
+                window.location.href = 'tel:108';
             } else if (data.action === "FIND_DOCTOR") {
-                setTimeout(() => {
-                    const query = data.specialty_keyword ? `?specialty=${encodeURIComponent(data.specialty_keyword)}` : '';
-                    window.location.href = `/hospitals${query}`;
-                }, 2000);
+                const query = data.specialty_keyword ? `?specialty=${encodeURIComponent(data.specialty_keyword)}` : '';
+                window.location.href = `/hospitals${query}`;
             }
             
         } catch (error) {
