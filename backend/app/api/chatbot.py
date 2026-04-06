@@ -16,6 +16,7 @@ class ChatResponse(BaseModel):
     response: str
     recommended_specialist: str | None = None
     specialty_keyword: str | None = None
+    action: str | None = None
 
 # Specialty inference rules
 SPECIALTY_MAP = {
@@ -56,10 +57,10 @@ async def call_gemini_llm(user_message: str) -> str:
     system_prompt = (
         "You are Dr. AyuSphere, the premium virtual health AI for the AyuSphere emergency health application. "
         "Your platform features a built-in 'Hospital & Doctor Finder'. If a user asks you to find a doctor, consult one, "
-        "or locate a hospital, strictly inform them that they can use the built-in 'Hospitals' feature on the AyuSphere app "
-        "to instantly locate and contact nearby specialists. "
-        "If a user asks a non-medical question (e.g. coding, AWS, trivia), you MUST answer it accurately and directly as a capable AI. "
-        "However, after answering non-medical questions, ALWAYS elegantly pivot back to focusing on their health (e.g., '...Now, is there any health concern I can assist you with today?'). "
+        "or locate a hospital, strictly inform them that they can use the built-in 'Hospitals' feature on the AyuSphere app. "
+        "CRITICAL AGENT INSTRUCTION: If they ask to find, consult, or book a doctor/hospital, YOU MUST append exactly the string `[ACTION:FIND_DOCTOR]` to the very end of your response. "
+        "CRITICAL AGENT INSTRUCTION: If they ask to call an ambulance, send an SOS, or report a life-threatening emergency, YOU MUST append exactly the string `[ACTION:CALL_AMBULANCE]` to the very end of your response. "
+        "If a user asks a non-medical question, you MUST answer it accurately as a capable AI, but ALWAYS elegantly pivot back to focusing on their health. "
         "Keep your overall responses highly robust, professional, and do not abruptly stop talking. "
     )
 
@@ -113,14 +114,21 @@ async def process_chat(request: Request, chat_request: ChatRequest, current_user
     # Call Gemini LLM directly, getting back text or error reason
     llm_response = await call_gemini_llm(text)
     
+    # Extract agentic structural actions
+    action = None
+    if "[ACTION:FIND_DOCTOR]" in llm_response:
+        action = "FIND_DOCTOR"
+        llm_response = llm_response.replace("[ACTION:FIND_DOCTOR]", "").strip()
+    elif "[ACTION:CALL_AMBULANCE]" in llm_response:
+        action = "CALL_AMBULANCE"
+        llm_response = llm_response.replace("[ACTION:CALL_AMBULANCE]", "").strip()
+    
     # Still attach a specialist chip to help the user navigate
     specialist, keyword = infer_specialist(text)
     
-    # If the LLM throws an actual error, we still want to show the error rather than a generic summary.
-    # The `call_gemini_llm` now gracefully returns string traces starting with '[Error]' for debug.
-
     return ChatResponse(
         response=llm_response,
         recommended_specialist=specialist if not llm_response.startswith("[Error]") else None,
-        specialty_keyword=keyword if not llm_response.startswith("[Error]") else None
+        specialty_keyword=keyword if not llm_response.startswith("[Error]") else None,
+        action=action
     )

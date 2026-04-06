@@ -41,8 +41,21 @@ export default function Chatbot() {
                 role: 'assistant', 
                 text: data.response, 
                 specialist: data.recommended_specialist,
-                keyword: data.specialty_keyword
+                keyword: data.specialty_keyword,
+                action: data.action
             }]);
+            
+            // Execute Agentic Actions if returned by AI
+            if (data.action === "CALL_AMBULANCE") {
+                setTimeout(() => {
+                    window.location.href = 'tel:108';
+                }, 1500);
+            } else if (data.action === "FIND_DOCTOR") {
+                setTimeout(() => {
+                    const query = data.specialty_keyword ? `?specialty=${encodeURIComponent(data.specialty_keyword)}` : '';
+                    window.location.href = `/hospitals${query}`;
+                }, 2000);
+            }
             
         } catch (error) {
             let errorText = "I'm having trouble connecting to my medical database. ";
