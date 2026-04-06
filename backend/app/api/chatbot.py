@@ -43,10 +43,17 @@ def infer_specialist(text: str) -> tuple[str, str]:
 
 
 # ── Google Gemini API Integration ──
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+GEMINI_MODELS = [
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+    "gemini-pro"
+]
 
 async def call_gemini_llm(user_message: str) -> str:
-    """Call the Google Gemini REST API."""
+    """Call the Google Gemini REST API with automatic model cascading."""
     api_key = settings.GEMINI_API_KEY
     if not api_key:
         return "[Error] I am currently running offline. Please add your GEMINI_API_KEY to your backend environment variables."
@@ -64,13 +71,11 @@ async def call_gemini_llm(user_message: str) -> str:
         "Keep your overall responses highly robust, professional, and do not abruptly stop talking. "
     )
 
-    url = f"{GEMINI_API_URL}?key={api_key}"
-    headers = {"Content-Type": "application/json"}
     payload = {
         "contents": [
             {
                 "role": "user",
-                "parts": [{"text": f"System Guidelines: {system_prompt}\\n\\nPatient says: {user_message}"}]
+                "parts": [{"text": f"System Guidelines: {system_prompt}\n\nPatient says: {user_message}"}]
             }
         ],
         "generationConfig": {
@@ -79,31 +84,49 @@ async def call_gemini_llm(user_message: str) -> str:
         }
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        try:
-            resp = await client.post(url, json=payload, headers=headers)
-        except httpx.ReadTimeout:
-            return "[Error] The connection to the AI service timed out. Please try again."
-        
-        if resp.status_code == 200:
-            data = resp.json()
+    async with httpx.AsyncClient() as client:
+        last_error = ""
+        for model in GEMINI_MODELS:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
             try:
-                text = data["candidates"][0]["content"]["parts"][0]["text"]
-                return text.strip()
-            except (KeyError, IndexError):
-                return "[Error] Received an unexpected response format from the AI model."
-        elif resp.status_code == 429:
-            return "[Error] AI API quota has been exceeded. Please review your billing or limits on the API console."
-        elif resp.status_code == 404:
-            return f"[Error] AI Model not found (404). Current URL: {GEMINI_API_URL}."
-        elif resp.status_code in (400, 403):
-            try:
-                err_msg = resp.json().get("error", {}).get("message", resp.text)
-                return f"[Error] API Access Denied ({resp.status_code}): {err_msg}"
-            except Exception:
-                return f"[Error] API Error ({resp.status_code}): {resp.text}"
-        else:
-            return f"[Error] An error occurred with the AI service: HTTP {resp.status_code}. Details: {resp.text}"
+                resp = await client.post(url, json=payload, timeout=20.0)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    # Successfully generated a response
+                    try:
+                        return data["candidates"][0]["content"]["parts"][0]["text"]
+                    except (KeyError, IndexError):
+                        return "[Error] The model returned an empty or structurally malformed response."
+                        
+                elif resp.status_code == 429:
+                    err_msg = resp.json().get("error", {}).get("message", "Quota Exceeded")
+                    last_error = f"[Error] 429 Quota Exceeded on {model}: {err_msg}"
+                    continue # Try the next fallback model!
+                    
+                elif resp.status_code == 404:
+                    last_error = f"[Error] 404 Model {model} not found for this API Key."
+                    continue # Try the next fallback model!
+                    
+                elif resp.status_code in (400, 403):
+                    # For permissions or severe syntax errors, fail immediately.
+                    try:
+                        err_msg = resp.json().get("error", {}).get("message", resp.text)
+                        return f"[Error] API Access Denied ({resp.status_code}): {err_msg}"
+                    except Exception:
+                        return f"[Error] API Error ({resp.status_code}): {resp.text}"
+                else:
+                    last_error = f"[Error] An error occurred with the AI service: HTTP {resp.status_code}. Details: {resp.text}"
+                    continue
+                    
+            except httpx.TimeoutException:
+                last_error = f"[Error] Network Timeout waiting for {model} to respond."
+                continue
+            except Exception as e:
+                last_error = f"[Error] Unknown connection error reaching {model}: {str(e)}"
+                continue
+                
+        # If we exhausted the entire waterfall without returning success or a hard 403
+        return last_error or "[Error] All Gemini fallback models failed due to routing or quota limits."
 
 
 @router.post("/message", response_model=ChatResponse)
