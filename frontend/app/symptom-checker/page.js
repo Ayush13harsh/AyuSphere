@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import AppLayout from '../components/AppLayout';
 import { fetchAPI } from '../lib/api';
@@ -11,6 +11,7 @@ export default function SymptomChecker() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [loadingMessage, setLoadingMessage] = useState('');
 
     // Form State
     const [symptomsText, setSymptomsText] = useState('');
@@ -24,6 +25,16 @@ export default function SymptomChecker() {
     const [result, setResult] = useState(null);
     const [hospitals, setHospitals] = useState([]);
     const [userLocation, setUserLocation] = useState(null);
+
+    // Timer ref for loading message updates
+    const loadingTimerRef = useRef(null);
+
+    // Clean up timer on unmount
+    useEffect(() => {
+        return () => {
+            if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+        };
+    }, []);
 
     const presetSymptoms = [
         "Headache", "Fever", "Cough", "Chest Pain", "Stomach Ache",
@@ -50,6 +61,12 @@ export default function SymptomChecker() {
 
         setLoading(true);
         setError('');
+        setLoadingMessage('Analyzing your symptoms...');
+
+        // Show progressive messages so the user knows it's working
+        loadingTimerRef.current = setTimeout(() => {
+            setLoadingMessage('Connecting to server... this may take a moment');
+        }, 4000);
 
         try {
             // 1. Get Symptom Analysis
@@ -65,11 +82,13 @@ export default function SymptomChecker() {
                 })
             });
 
+            if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
             setResult(analysis);
             setStep(3); // Result Step
 
             // 2. Fetch User Location and Find Specialists
             if (navigator.geolocation) {
+                setLoadingMessage('Finding nearby specialists...');
                 navigator.geolocation.getCurrentPosition(async (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
@@ -82,11 +101,13 @@ export default function SymptomChecker() {
                         console.error("Failed to load hospitals", err);
                     } finally {
                         setLoading(false);
+                        setLoadingMessage('');
                     }
                 }, (geolocationError) => {
                     console.error("Geolocation error:", geolocationError);
                     setError('Unable to retrieve location. Please ensure location services are enabled in your browser/OS to find nearby specialists.');
                     setLoading(false);
+                    setLoadingMessage('');
                 }, {
                     enableHighAccuracy: true,
                     timeout: 10000,
@@ -94,11 +115,23 @@ export default function SymptomChecker() {
                 });
             } else {
                 setLoading(false);
+                setLoadingMessage('');
             }
 
         } catch (err) {
-            setError(err.message);
+            if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+            
+            // User-friendly error messages
+            let errorMsg = err.message;
+            if (err.message.includes('timed out') || err.message.includes('AbortError')) {
+                errorMsg = 'The server is taking too long to respond. It may be starting up — please try again in 30 seconds.';
+            } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                errorMsg = 'Unable to reach the server. Please check your internet connection and try again.';
+            }
+            
+            setError(errorMsg);
             setLoading(false);
+            setLoadingMessage('');
         }
     };
 
@@ -222,7 +255,12 @@ export default function SymptomChecker() {
                         <div style={{ display: 'flex', gap: '10px', marginTop: '2rem' }}>
                             <button onClick={handleBack} className="btn btn-outline" style={{ flex: 1 }}>Back</button>
                             <button onClick={handleSubmit} disabled={loading} className="btn btn-primary" style={{ flex: 2 }}>
-                                {loading ? <span className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '3px' }}></span> : 'Analyze Symptoms'}
+                                {loading ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                        <span className="loading-spinner" style={{ width: '20px', height: '20px', borderWidth: '3px' }}></span>
+                                        <span style={{ fontSize: '0.85rem' }}>{loadingMessage || 'Analyzing...'}</span>
+                                    </div>
+                                ) : 'Analyze Symptoms'}
                             </button>
                         </div>
                     </div>

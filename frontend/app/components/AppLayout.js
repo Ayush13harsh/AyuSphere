@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
+import { warmUpBackend } from '../lib/api';
 import { useState, useEffect } from 'react';
 
 export default function AppLayout({ children, title = 'AyuSphere' }) {
@@ -15,6 +16,8 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
             setDarkMode(true);
             document.documentElement.setAttribute('data-theme', 'dark');
         }
+        // Wake up the Render backend immediately so it's ready when user navigates
+        warmUpBackend();
     }, []);
 
     const toggleDarkMode = () => {

@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useSearchParams } from 'next/navigation';
-import { API_URL, fetchWithRetry, getNetworkErrorMessage } from './lib/api';
+import { API_URL, fetchWithRetry, getNetworkErrorMessage, warmUpBackend } from './lib/api';
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -14,6 +14,8 @@ function HomeContent() {
     if (searchParams.get('mode') === 'signup') {
       setAuthMode('signup');
     }
+    // Start waking the backend immediately on login screen load
+    warmUpBackend();
   }, [searchParams]);
 
   const [email, setEmail] = useState('');

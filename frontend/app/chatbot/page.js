@@ -45,9 +45,15 @@ export default function Chatbot() {
             }]);
             
         } catch (error) {
+            let errorText = "I'm having trouble connecting to my medical database. ";
+            if (error.message.includes('timed out') || error.message.includes('AbortError')) {
+                errorText = "The server is taking longer than usual to respond — it may be starting up. Please try sending your message again in a moment.";
+            } else {
+                errorText += getNetworkErrorMessage(error);
+            }
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
-                text: "I'm having trouble connecting to my medical database. " + getNetworkErrorMessage()
+                text: errorText
             }]);
         } finally {
             setLoading(false);

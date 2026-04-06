@@ -2,7 +2,7 @@
 import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useJsApiLoader } from '@react-google-maps/api';
+import { fetchAPI, warmUpBackend } from '../lib/api';
 
 const LeafletMap = dynamic(() => import('../components/LeafletMap'), { ssr: false });
 
@@ -11,15 +11,12 @@ export default function Hospitals() {
     const [userLocation, setUserLocation] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
-    const isGoogleMapEnabled = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.includes('ADD_');
-
-    const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: isGoogleMapEnabled ? process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY : ''
-    });
+    const [loadingMessage, setLoadingMessage] = useState('Finding your location...');
 
     useEffect(() => {
+        // Wake up backend early
+        warmUpBackend();
+
         if (!navigator.geolocation) {
             setError('Geolocation is not supported by your browser');
             setLoading(false);
@@ -29,31 +26,25 @@ export default function Hospitals() {
         navigator.geolocation.getCurrentPosition(async (position) => {
             const currentLoc = { lat: position.coords.latitude, lng: position.coords.longitude };
             setUserLocation(currentLoc);
+            setLoadingMessage('Loading nearby hospitals...');
 
             try {
-                // Ensure we use the correct backend URL
-                let API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'https://ayusphere-backend.onrender.com/api/v1').replace(/\\n/g, '').trim();
-                if (typeof window !== 'undefined' &&
-                    window.location.hostname !== 'localhost' &&
-                    window.location.hostname !== '127.0.0.1') {
-                    if (API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1')) {
-                        API_BASE = 'https://ayusphere-backend.onrender.com/api/v1';
-                    }
-                }
-                API_BASE = API_BASE.replace(/\/+$/, '');
-
-                // For Google Maps Places API via our backend proxy
-                const response = await fetch(`${API_BASE}/hospitals?lat=${currentLoc.lat}&lng=${currentLoc.lng}`);
-                if (!response.ok) throw new Error("Server returned " + response.status);
-                const data = await response.json();
+                const specialty = new URLSearchParams(window.location.search).get('specialty');
+                const endpoint = `/hospitals?lat=${currentLoc.lat}&lng=${currentLoc.lng}${specialty ? `&specialty=${specialty}` : ''}`;
+                const data = await fetchAPI(endpoint);
                 setHospitals(data);
             } catch (err) {
-                setError('Failed to load hospitals: ' + err.message);
+                let errorMsg = 'Failed to load hospitals: ' + err.message;
+                if (err.message.includes('timed out')) {
+                    errorMsg = 'The server is starting up. Please wait a moment and refresh the page.';
+                }
+                setError(errorMsg);
             } finally {
                 setLoading(false);
+                setLoadingMessage('');
             }
         }, () => {
-            setError('Unable to retrieve location.');
+            setError('Unable to retrieve location. Please enable location services.');
             setLoading(false);
         });
     }, []);
@@ -96,7 +87,10 @@ export default function Hospitals() {
                 {error && <div className="alert alert-error" style={{ margin: '0 1.5rem 1.5rem 1.5rem' }}>{error}</div>}
 
                 {loading ? (
-                    <p style={{ textAlign: 'center' }}>Loading hospitals...</p>
+                    <div style={{ textAlign: 'center', padding: '2rem' }}>
+                        <span className="loading-spinner" style={{ width: '30px', height: '30px', borderWidth: '4px', borderColor: 'rgba(255,59,59,0.2)', borderTopColor: 'var(--primary-red)' }}></span>
+                        <p style={{ marginTop: '1rem', color: 'var(--text-light)' }}>{loadingMessage}</p>
+                    </div>
                 ) : hospitals.length === 0 ? (
                     <p style={{ textAlign: 'center', color: 'var(--text-light)' }}>No hospitals found nearby.</p>
                 ) : (

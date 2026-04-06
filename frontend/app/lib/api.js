@@ -12,20 +12,72 @@ if (typeof window !== 'undefined' &&
 export const API_URL = RAW_API_URL.replace(/\/+$/, '');
 console.log("[api.js] Resolved API_URL:", API_URL);
 
+/** Default request timeout in milliseconds (20 seconds). */
+const REQUEST_TIMEOUT_MS = 20000;
+
+/**
+ * Wake up the Render backend by pinging /health.
+ * Call this early (e.g., on login page or app mount) so the server
+ * is warm by the time the user makes a real API call.
+ */
+let _warmUpPromise = null;
+export function warmUpBackend() {
+    if (_warmUpPromise) return _warmUpPromise;
+
+    const healthUrl = API_URL.replace(/\/api\/v1$/, '') + '/health';
+    _warmUpPromise = fetch(healthUrl, { method: 'GET', mode: 'cors' })
+        .then(res => {
+            console.log('[api.js] Backend warm-up:', res.ok ? 'READY' : res.status);
+        })
+        .catch(err => {
+            console.log('[api.js] Backend warm-up ping failed (server may be cold-starting):', err.message);
+        })
+        .finally(() => {
+            // Allow re-pinging after 5 minutes
+            setTimeout(() => { _warmUpPromise = null; }, 5 * 60 * 1000);
+        });
+
+    return _warmUpPromise;
+}
+
 /**
  * Fetch with automatic retry on network errors (e.g. server cold-starting on Render).
- * Retries up to `retries` times with exponential backoff starting at `baseDelay` ms.
+ * Retries up to `retries` times with backoff starting at `baseDelay` ms.
+ * Each individual request has an AbortController timeout.
  */
-export async function fetchWithRetry(url, options = {}, retries = 2, baseDelay = 3000) {
+export async function fetchWithRetry(url, options = {}, retries = 2, baseDelay = 1500) {
     for (let attempt = 0; attempt <= retries; attempt++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
         try {
-            return await fetch(url, options);
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+            return response;
         } catch (err) {
+            clearTimeout(timeoutId);
+
+            // If this was a timeout abort, give a clear message
+            if (err.name === 'AbortError') {
+                const isLastAttempt = attempt === retries;
+                if (isLastAttempt) {
+                    throw new TypeError(
+                        'Request timed out. The server may be starting up — please try again in a moment.'
+                    );
+                }
+                // Wait and retry
+                await new Promise(r => setTimeout(r, baseDelay * Math.pow(1.5, attempt)));
+                continue;
+            }
+
             const isLastAttempt = attempt === retries;
             if (isLastAttempt || !(err instanceof TypeError)) {
                 throw err;
             }
-            await new Promise(r => setTimeout(r, baseDelay * Math.pow(2, attempt)));
+            await new Promise(r => setTimeout(r, baseDelay * Math.pow(1.5, attempt)));
         }
     }
 }
@@ -39,7 +91,7 @@ export function getNetworkErrorMessage(err) {
         return 'You appear to be offline. Please check your internet connection and try again.';
     }
     const suffix = err ? ` (${err.message})` : '';
-    return `Unable to reach the server at ${API_URL} — it may be starting up. Please try again in a moment.` + suffix;
+    return `Unable to reach the server — it may be starting up. Please try again in a moment.` + suffix;
 }
 
 let isRefreshing = false;
