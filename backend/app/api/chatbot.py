@@ -42,14 +42,13 @@ def infer_specialist(text: str) -> tuple[str, str]:
 
 
 # ── Google Gemini API Integration ──
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
-async def call_gemini_llm(user_message: str) -> str | None:
+async def call_gemini_llm(user_message: str) -> str:
     """Call the Google Gemini REST API."""
     api_key = settings.GEMINI_API_KEY
     if not api_key:
-        print("Warning: GEMINI_API_KEY is not set.")
-        return None
+        return "[Error] I am currently running in offline mode because the GEMINI_API_KEY is not configured on the server. Please add it to your environment variables."
 
     system_prompt = (
         "You are Dr. AyuSphere, a virtual health assistant in an emergency health app. "
@@ -74,17 +73,26 @@ async def call_gemini_llm(user_message: str) -> str | None:
     }
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        resp = await client.post(url, json=payload, headers=headers)
+        try:
+            resp = await client.post(url, json=payload, headers=headers)
+        except httpx.ReadTimeout:
+            return "[Error] The connection to the AI service timed out. Please try again."
+        
         if resp.status_code == 200:
             data = resp.json()
             try:
                 text = data["candidates"][0]["content"]["parts"][0]["text"]
                 return text.strip()
             except (KeyError, IndexError):
-                return None
+                return "[Error] Received an unexpected response format from the AI model."
+        elif resp.status_code == 429:
+            return "[Error] AI API quota has been exceeded. Please review your billing or limits on the API console."
+        elif resp.status_code == 404:
+            return f"[Error] AI Model not found (404). Current URL: {GEMINI_API_URL}."
+        elif resp.status_code == 400:
+            return f"[Error] Bad API Request: {resp.text}"
         else:
-            print(f"Gemini API Error: {resp.status_code} - {resp.text}")
-        return None
+            return f"[Error] An error occurred with the AI service: HTTP {resp.status_code}."
 
 
 @router.post("/message", response_model=ChatResponse)
@@ -92,40 +100,17 @@ async def call_gemini_llm(user_message: str) -> str | None:
 async def process_chat(request: Request, chat_request: ChatRequest, current_user: dict = Depends(get_current_user)):
     text = chat_request.message
 
-    # Step 1: Try Gemini LLM for a rich, intelligent response
-    try:
-        llm_response = await call_gemini_llm(text)
-        if llm_response:
-            specialist, keyword = infer_specialist(text)
-            return ChatResponse(
-                response=llm_response,
-                recommended_specialist=specialist,
-                specialty_keyword=keyword
-            )
-    except Exception as e:
-        print(f"HF LLM Error: {e}")
-
-    # Step 2: Match specialists based on symptom keywords
+    # Call Gemini LLM directly, getting back text or error reason
+    llm_response = await call_gemini_llm(text)
+    
+    # Still attach a specialist chip to help the user navigate
     specialist, keyword = infer_specialist(text)
     
-    # Build response based on matched specialist
-    if specialist != "General Physician":
-        response_text = (
-            f"Based on the symptoms you've described, I recommend consulting a {specialist}. "
-            f"Based on the symptoms you've described, they "
-            f"suggest this specialist would be best equipped to help you. "
-            f"Please seek medical attention promptly if your symptoms are severe."
-        )
-    else:
-        response_text = (
-            "Thank you for sharing your symptoms. I recommend consulting "
-            "a General Physician who can properly evaluate your condition. "
-            "If you're experiencing severe symptoms, please don't hesitate to use the SOS button "
-            "or call emergency services immediately."
-        )
+    # If the LLM throws an actual error, we still want to show the error rather than a generic summary.
+    # The `call_gemini_llm` now gracefully returns string traces starting with '[Error]' for debug.
 
     return ChatResponse(
-        response=response_text,
-        recommended_specialist=specialist,
-        specialty_keyword=keyword
+        response=llm_response,
+        recommended_specialist=specialist if not llm_response.startswith("[Error]") else None,
+        specialty_keyword=keyword if not llm_response.startswith("[Error]") else None
     )
