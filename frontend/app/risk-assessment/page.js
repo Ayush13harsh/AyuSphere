@@ -125,12 +125,12 @@ export default function RiskAssessment() {
 
     return (
         <AppLayout title="Risk Analysis">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>Health Risk Analyzer</h2>
-                    <p style={{ color: 'var(--text-light)', marginTop: '4px' }}>AI-driven vitals and symptom evaluation</p>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>Health Risk Analyzer</h2>
+                    <p style={{ color: 'var(--text-light)', marginTop: '2px', fontSize: '0.9rem' }}>AI-driven vitals and symptom evaluation</p>
                 </div>
-                <Link href="/dashboard" className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>Back</Link>
+                <Link href="/dashboard" className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>Back</Link>
             </div>
 
             {step === 1 && (
@@ -206,55 +206,53 @@ export default function RiskAssessment() {
                 <div style={{ animation: 'fade-in 0.5s ease' }}>
 
                     {/* Massive Gauge Meter Container */}
-                    <div className="card" style={{ textAlign: 'center', padding: '3rem 1.5rem', marginBottom: '1.5rem', background: '#1e293b', color: 'white' }}>
-                        <h3 style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1rem' }}>Overall Health Risk</h3>
+                    <div className="card" style={{ textAlign: 'center', padding: '1.2rem', marginBottom: '0.8rem', background: '#1e293b', color: 'white' }}>
+                        <h3 style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.8rem' }}>Overall Health Risk</h3>
 
                         <div style={{
-                            position: 'relative', width: '200px', height: '200px', margin: '0 auto',
+                            position: 'relative', width: '130px', height: '130px', margin: '0 auto',
                             borderRadius: '50%', background: `conic-gradient(${result.color} ${result.score}%, #334155 ${result.score}%)`,
                             display: 'flex', justifyContent: 'center', alignItems: 'center',
-                            boxShadow: `0 0 40px ${result.color}40`
+                            boxShadow: `0 0 20px ${result.color}40`
                         }}>
                             <div style={{
-                                width: '160px', height: '160px', background: '#1e293b', borderRadius: '50%',
+                                width: '100px', height: '100px', background: '#1e293b', borderRadius: '50%',
                                 display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
                             }}>
-                                <span style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1, color: result.color }}>{Math.round(result.score)}</span>
-                                <span style={{ fontSize: '0.9rem', color: '#cbd5e1', marginTop: '4px' }}>/ 100</span>
+                                <span style={{ fontSize: '2.2rem', fontWeight: 800, lineHeight: 1, color: result.color }}>{Math.round(result.score)}</span>
+                                <span style={{ fontSize: '0.75rem', color: '#cbd5e1', marginTop: '2px' }}>/ 100</span>
                             </div>
                         </div>
 
-                        <h2 style={{ fontSize: '2rem', marginTop: '1.5rem', color: result.color }}>{result.category}</h2>
+                        <h2 style={{ fontSize: '1.4rem', marginTop: '1rem', color: result.color, marginBottom: 0 }}>{result.category}</h2>
                     </div>
 
                     {/* Breakdown Cards */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
-                        <div className="card" style={{ borderLeft: `6px solid ${result.color}` }}>
-                            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>Detected Risk Factors</h3>
-                            <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-dark)', lineHeight: '1.6' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+                        <div className="card" style={{ borderLeft: `6px solid ${result.color}`, padding: '0.8rem 1rem' }}>
+                            <h3 style={{ fontSize: '0.95rem', marginBottom: '0.4rem' }}>Detected Risk Factors</h3>
+                            <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-dark)', lineHeight: '1.3', margin: 0, fontSize: '0.85rem' }}>
                                 {result.factors.map((factor, i) => (
-                                    <li key={i}>{factor}</li>
+                                    <li key={i} style={{ marginBottom: '2px' }}>{factor}</li>
                                 ))}
                             </ul>
                         </div>
 
                         {result.bmi && (
-                            <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div>
-                                    <h3 style={{ fontSize: '1rem', color: 'var(--text-light)', marginBottom: '4px' }}>Calculated BMI</h3>
-                                    <p style={{ fontWeight: 600, fontSize: '1.2rem' }}>{result.bmi}</p>
-                                </div>
-                                <div style={{ background: result.bmi > 25 ? 'var(--bg-red-light)' : '#ecfdf5', color: result.bmi > 25 ? 'var(--primary-red)' : '#059669', padding: '8px 16px', borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem' }}>
+                            <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '0.8rem 1rem', textAlign: 'center' }}>
+                                <h3 style={{ fontSize: '0.9rem', color: 'var(--text-light)', marginBottom: '4px' }}>Calculated BMI</h3>
+                                <p style={{ fontWeight: 600, fontSize: '1.2rem', margin: '0 0 6px 0' }}>{result.bmi}</p>
+                                <div style={{ background: result.bmi > 25 ? 'var(--bg-red-light)' : '#ecfdf5', color: result.bmi > 25 ? 'var(--primary-red)' : '#059669', padding: '4px 12px', borderRadius: '16px', fontWeight: 700, fontSize: '0.8rem' }}>
                                     {result.bmi > 30 ? 'Obese' : result.bmi > 25 ? 'Overweight' : result.bmi < 18.5 ? 'Underweight' : 'Normal'}
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-                        <button onClick={() => { setStep(1); setResult(null); }} className="btn btn-outline" style={{ flex: 1 }}>Recalculate</button>
+                    <div style={{ marginTop: '1rem', display: 'flex', gap: '0.8rem', paddingBottom: '90px' }}>
+                        <button onClick={() => { setStep(1); setResult(null); }} className="btn btn-outline" style={{ flex: 1, padding: '0.6rem' }}>Recalculate</button>
                         {result.category !== "Low Risk" && (
-                            <Link href="/chatbot" className="btn btn-primary" style={{ flex: 1, textAlign: 'center' }}>Consult Doctor</Link>
+                            <Link href="/chatbot" className="btn btn-primary" style={{ flex: 1, textAlign: 'center', padding: '0.6rem' }}>Consult Doctor</Link>
                         )}
                     </div>
                 </div>
