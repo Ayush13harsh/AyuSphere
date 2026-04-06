@@ -93,10 +93,14 @@ async def call_gemini_llm(user_message: str) -> str:
             return "[Error] AI API quota has been exceeded. Please review your billing or limits on the API console."
         elif resp.status_code == 404:
             return f"[Error] AI Model not found (404). Current URL: {GEMINI_API_URL}."
-        elif resp.status_code == 400:
-            return f"[Error] Bad API Request: {resp.text}"
+        elif resp.status_code in (400, 403):
+            try:
+                err_msg = resp.json().get("error", {}).get("message", resp.text)
+                return f"[Error] API Access Denied ({resp.status_code}): {err_msg}"
+            except Exception:
+                return f"[Error] API Error ({resp.status_code}): {resp.text}"
         else:
-            return f"[Error] An error occurred with the AI service: HTTP {resp.status_code}."
+            return f"[Error] An error occurred with the AI service: HTTP {resp.status_code}. Details: {resp.text}"
 
 
 @router.post("/message", response_model=ChatResponse)
