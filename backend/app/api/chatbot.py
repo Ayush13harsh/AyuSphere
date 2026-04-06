@@ -48,7 +48,10 @@ async def call_gemini_llm(user_message: str) -> str:
     """Call the Google Gemini REST API."""
     api_key = settings.GEMINI_API_KEY
     if not api_key:
-        return "[Error] I am currently running in offline mode because the GEMINI_API_KEY is not configured on the server. Please add it to your environment variables."
+        return "[Error] I am currently running offline. Please add your GEMINI_API_KEY to your backend environment variables."
+        
+    if "AIza" in api_key and "simulate" in api_key.lower() or api_key == "AIzaSyBrmI0Q3E_7D4RmBp57ZuZ5iuxeYJj7AKY":
+        return "[Error] API Quota Exceeded! The Google Gemini API is 100% FREE, but you are currently using my placeholder/dummy API key which has 0 quota. To fix this: Go to https://aistudio.google.com/app/apikey, click 'Create API Key' (it's totally free), copy it, and paste it into your Render Environment Variables as GEMINI_API_KEY."
 
     system_prompt = (
         "You are Dr. AyuSphere, a virtual health assistant in an emergency health app. "
