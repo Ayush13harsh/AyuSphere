@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from app.api.auth import get_current_user
 from app.core.limiter import limiter
+from app.core.config import settings
 import httpx
 import json
 import os
@@ -40,42 +41,49 @@ def infer_specialist(text: str) -> tuple[str, str]:
     return "General Physician", "general physician"
 
 
-# ── Hugging Face Inference API (FREE, no key needed for public models) ──
-HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
-HF_API_URL = f"https://router.hugging-face.cn/models/{HF_MODEL}"
-HF_TOKEN = os.getenv("HF_TOKEN", "")  # Optional, increases rate limits
+# ── Google Gemini API Integration ──
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
-async def call_hf_llm(user_message: str) -> str | None:
-    """Call the Hugging Face free Inference API."""
+async def call_gemini_llm(user_message: str) -> str | None:
+    """Call the Google Gemini REST API."""
+    api_key = settings.GEMINI_API_KEY
+    if not api_key:
+        print("Warning: GEMINI_API_KEY is not set.")
+        return None
+
     system_prompt = (
         "You are Dr. AyuSphere, a virtual health assistant in an emergency health app. "
-        "Provide brief, practical health advice for common symptoms. "
-        "Be professional and remind users to consult a real doctor for proper diagnosis. "
-        "Mention what type of specialist they should see."
+        "Provide brief, practical health advice for common symptoms and answer general health inquiries. "
+        "Be professional and always remind users to consult a real doctor for proper diagnosis. "
+        "Keep your response concise (3-4 sentences max)."
     )
-    
-    prompt = f"<s>[INST] {system_prompt}\n\nPatient says: {user_message} [/INST]"
 
+    url = f"{GEMINI_API_URL}?key={api_key}"
     headers = {"Content-Type": "application/json"}
-    if HF_TOKEN:
-        headers["Authorization"] = f"Bearer {HF_TOKEN}"
-
     payload = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 250,
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": f"System Guidelines: {system_prompt}\\n\\nPatient says: {user_message}"}]
+            }
+        ],
+        "generationConfig": {
             "temperature": 0.7,
-            "return_full_text": False
+            "maxOutputTokens": 250,
         }
     }
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        resp = await client.post(HF_API_URL, json=payload, headers=headers)
-        resp.raise_for_status()
-        data = resp.json()
-        
-        if isinstance(data, list) and len(data) > 0:
-            return data[0].get("generated_text", "").strip()
+        resp = await client.post(url, json=payload, headers=headers)
+        if resp.status_code == 200:
+            data = resp.json()
+            try:
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                return text.strip()
+            except (KeyError, IndexError):
+                return None
+        else:
+            print(f"Gemini API Error: {resp.status_code} - {resp.text}")
         return None
 
 
@@ -84,9 +92,9 @@ async def call_hf_llm(user_message: str) -> str | None:
 async def process_chat(request: Request, chat_request: ChatRequest, current_user: dict = Depends(get_current_user)):
     text = chat_request.message
 
-    # Step 1: Try HF LLM for a rich, intelligent response
+    # Step 1: Try Gemini LLM for a rich, intelligent response
     try:
-        llm_response = await call_hf_llm(text)
+        llm_response = await call_gemini_llm(text)
         if llm_response:
             specialist, keyword = infer_specialist(text)
             return ChatResponse(
