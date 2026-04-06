@@ -42,7 +42,7 @@ def infer_specialist(text: str) -> tuple[str, str]:
 
 
 # ── Google Gemini API Integration ──
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 async def call_gemini_llm(user_message: str) -> str:
     """Call the Google Gemini REST API."""
@@ -50,8 +50,8 @@ async def call_gemini_llm(user_message: str) -> str:
     if not api_key:
         return "[Error] I am currently running offline. Please add your GEMINI_API_KEY to your backend environment variables."
         
-    if "AIza" in api_key and "simulate" in api_key.lower() or api_key == "AIzaSyBrmI0Q3E_7D4RmBp57ZuZ5iuxeYJj7AKY":
-        return "[Error] API Quota Exceeded! The Google Gemini API is 100% FREE, but you are currently using my placeholder/dummy API key which has 0 quota. To fix this: Go to https://aistudio.google.com/app/apikey, click 'Create API Key' (it's totally free), copy it, and paste it into your Render Environment Variables as GEMINI_API_KEY."
+    if "simulate" in api_key.lower():
+        return "[Error] API Quota Exceeded! The Google Gemini API is 100% FREE, but you are currently using a simulated placeholder API key. To fix this: Go to https://aistudio.google.com/app/apikey to get a free key."
 
     system_prompt = (
         "You are Dr. AyuSphere, a virtual health assistant in an emergency health app. "
