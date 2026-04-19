@@ -19,6 +19,8 @@ export default function Dashboard() {
     const [showTracker, setShowTracker] = useState(false);
     const [userCoords, setUserCoords] = useState(null);
     const [isListening, setIsListening] = useState(false);
+    const [emergencyContacts, setEmergencyContacts] = useState([]);
+    const [showCallModal, setShowCallModal] = useState(false);
     const recognitionRef = useRef(null);
     const handleSOSRef = useRef(null);
 
@@ -173,12 +175,14 @@ export default function Dashboard() {
                 });
                 setShowTracker(true);
 
-                // Ambulance Call Flow
-                setTimeout(() => {
-                    if (window.confirm("Emergency SOS activated. Do you want to call ambulance now?")) {
-                        window.location.href = 'tel:108';
-                    }
-                }, 300);
+                // Fetch saved contacts and show call picker
+                try {
+                    const contacts = await fetchAPI('/contacts/');
+                    setEmergencyContacts(contacts || []);
+                } catch (e) {
+                    setEmergencyContacts([]);
+                }
+                setShowCallModal(true);
 
             } catch (error) {
                 setAlert({ type: 'error', text: 'Failed to send SOS: ' + error.message });
@@ -435,6 +439,76 @@ export default function Dashboard() {
 
             {showTracker && userCoords && (
                 <AmbulanceTracker userLocation={userCoords} onClose={() => setShowTracker(false)} />
+            )}
+
+            {/* Emergency Call Modal */}
+            {showCallModal && (
+                <div className="sos-modal-overlay" onClick={() => setShowCallModal(false)}>
+                    <div className="sos-modal" style={{ padding: '1.5rem', maxWidth: '400px', width: '92%' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ marginBottom: '1.25rem' }}>
+                            <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #ef4444, #dc2626)', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1rem auto', boxShadow: '0 8px 24px rgba(239,68,68,0.35)' }}>
+                                <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                            </div>
+                            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '4px' }}>Emergency Call</h2>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>SOS activated — call for help now</p>
+                        </div>
+
+                        {/* Ambulance (always shown) */}
+                        <a href="tel:108" style={{
+                            display: 'flex', alignItems: 'center', gap: '14px', padding: '1rem 1.25rem',
+                            background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white',
+                            borderRadius: '16px', textDecoration: 'none', marginBottom: '0.75rem',
+                            boxShadow: '0 6px 18px rgba(239,68,68,0.35)', transition: 'transform 0.2s'
+                        }}>
+                            <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, fontSize: '1.3rem' }}>🚑</div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 800, fontSize: '1rem' }}>Call Ambulance</div>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>Dial 108 — Emergency Services</div>
+                            </div>
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        </a>
+
+                        {/* Saved Contacts */}
+                        {emergencyContacts.length > 0 && (
+                            <>
+                                <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--text-light)', fontWeight: 700, marginBottom: '0.5rem', marginTop: '0.25rem' }}>Your Emergency Contacts</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                                    {emergencyContacts.map((c, idx) => (
+                                        <a key={c._id || idx} href={`tel:${c.phone}`} style={{
+                                            display: 'flex', alignItems: 'center', gap: '12px', padding: '0.85rem 1rem',
+                                            background: 'var(--white)', border: '1.5px solid var(--border)',
+                                            borderRadius: '14px', textDecoration: 'none', color: 'var(--text-dark)',
+                                            transition: 'all 0.2s'
+                                        }}>
+                                            <div style={{
+                                                width: '38px', height: '38px', borderRadius: '50%',
+                                                background: `hsl(${(idx * 60 + 200) % 360}, 70%, 95%)`,
+                                                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                                                fontWeight: 800, fontSize: '0.9rem', flexShrink: 0,
+                                                color: `hsl(${(idx * 60 + 200) % 360}, 60%, 40%)`
+                                            }}>
+                                                {c.name?.charAt(0)?.toUpperCase() || '?'}
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{c.name}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{c.phone} · {c.relationship || 'Contact'}</div>
+                                            </div>
+                                            <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#10b981', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                                                <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {emergencyContacts.length === 0 && (
+                            <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-light)', padding: '0.5rem 0' }}>No saved contacts. <a href="/contacts" style={{ color: 'var(--primary-red)', fontWeight: 600 }}>Add contacts</a></p>
+                        )}
+
+                        <button onClick={() => setShowCallModal(false)} className="btn btn-outline" style={{ marginTop: '1rem', padding: '0.7rem', fontSize: '0.9rem', width: '100%' }}>Dismiss</button>
+                    </div>
+                </div>
             )}
         </AppLayout>
     );
