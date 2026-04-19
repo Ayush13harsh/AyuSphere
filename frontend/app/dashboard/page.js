@@ -81,6 +81,13 @@ export default function Dashboard() {
             return;
         }
 
+        return () => {};
+    }, [countdown]);
+
+    // Separate effect for the countdown timer
+    useEffect(() => {
+        if (countdown === null || countdown === 0) return;
+
         const timer = setTimeout(() => {
             setCountdown(prev => prev - 1);
         }, 1000);
@@ -91,6 +98,13 @@ export default function Dashboard() {
     const handleSOS = () => {
         setAlert(null);
         setCountdown(5);
+
+        // Pre-fetch contacts during the 5-second countdown so they're ready instantly
+        fetchAPI('/contacts/').then(data => {
+            setEmergencyContacts(data || []);
+        }).catch(() => {
+            setEmergencyContacts([]);
+        });
     };
     handleSOSRef.current = handleSOS;
 
@@ -145,6 +159,11 @@ export default function Dashboard() {
 
     const startSOSSequence = () => {
         setCountdown(null);
+
+        // ⚡ INSTANTLY show the call modal — no waiting for APIs
+        setShowCallModal(true);
+
+        // 🔄 Everything below runs in the background, non-blocking
         setLoading(true);
 
         if (!navigator.geolocation) {
@@ -174,15 +193,6 @@ export default function Dashboard() {
                     lng: position.coords.longitude
                 });
                 setShowTracker(true);
-
-                // Fetch saved contacts and show call picker
-                try {
-                    const contacts = await fetchAPI('/contacts/');
-                    setEmergencyContacts(contacts || []);
-                } catch (e) {
-                    setEmergencyContacts([]);
-                }
-                setShowCallModal(true);
 
             } catch (error) {
                 setAlert({ type: 'error', text: 'Failed to send SOS: ' + error.message });
