@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { warmUpBackend } from '../lib/api';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import GlowCursor from './GlowCursor';
 
 export default function AppLayout({ children, title = 'AyuSphere' }) {
     const { logout } = useAuth();
@@ -34,7 +36,22 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
 
     return (
         <>
-            <header>
+            <GlowCursor />
+            <motion.header
+                initial={{ y: -80, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 22, delay: 0.3 }}
+                style={{
+                    background: 'rgba(4, 4, 15, 0.75)',
+                    backdropFilter: 'blur(28px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.07)',
+                    boxShadow: '0 1px 0 rgba(255, 31, 61, 0.1)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 100
+                }}
+            >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {pathname !== '/dashboard' && pathname !== '/' && (
                         <Link href="/dashboard" className="premium-back-btn" title="Back to Dashboard">
@@ -42,11 +59,37 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
                         </Link>
                     )}
                     <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                        <img src="/logo.svg" alt="AyuSphere" width="30" height="30" style={{ borderRadius: '8px' }} />
+                        <div style={{ position: 'relative', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: '50%',
+                                border: '2px solid rgba(255, 31, 61, 0.5)',
+                                position: 'absolute',
+                                top: '-6px',
+                                left: '-6px',
+                                animation: 'logoPulse 2s ease-in-out infinite',
+                                pointerEvents: 'none'
+                            }} />
+                            <img src="/logo.svg" alt="AyuSphere" width="30" height="30" style={{ borderRadius: '8px', zIndex: 1 }} />
+                        </div>
                         {title}
                     </h1>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Live Status Indicator */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
+                        <div style={{
+                            width: '8px',
+                            height: '8px',
+                            background: '#10b981',
+                            borderRadius: '50%',
+                            boxShadow: '0 0 6px #10b981',
+                            animation: 'statusPulse 2s ease-in-out infinite'
+                        }} />
+                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.7rem', fontWeight: 600 }}>Live</span>
+                    </div>
+
                     <button onClick={toggleDarkMode} className="theme-toggle" title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
                         {darkMode ? (
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/></svg>
@@ -54,26 +97,85 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
                         )}
                     </button>
-                    <button onClick={logout} className="btn-outline" style={{ width: 'auto', padding: '0.4rem 1rem', fontSize: '0.85rem', borderRadius: '8px' }}>
+                    
+                    <motion.button
+                        onClick={logout}
+                        className="btn-outline"
+                        style={{
+                            width: 'auto',
+                            padding: '0.4rem 1rem',
+                            fontSize: '0.85rem',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(255, 31, 61, 0.5)',
+                            color: '#ff1f3d',
+                            background: 'transparent',
+                            cursor: 'pointer'
+                        }}
+                        whileHover={{
+                            backgroundColor: '#ff1f3d',
+                            color: '#ffffff',
+                            boxShadow: '0 0 20px rgba(255, 31, 61, 0.4)'
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                    >
                         Logout
-                    </button>
+                    </motion.button>
                 </div>
-            </header>
+            </motion.header>
 
-            <main>
+            <main style={{ position: 'relative', zIndex: 5 }}>
                 {children}
             </main>
 
             <nav className="bottom-nav">
-                <Link href="/dashboard" className="nav-item active">
+                <Link href="/dashboard" className={`nav-item ${pathname === '/dashboard' || pathname === '/' ? 'active' : ''}`}>
+                    {(pathname === '/dashboard' || pathname === '/') && (
+                        <motion.div
+                            layoutId="navPill"
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                backgroundColor: 'rgba(255, 31, 61, 0.08)',
+                                borderRadius: '12px',
+                                zIndex: -1
+                            }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                    )}
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                     Home
                 </Link>
-                <Link href="/contacts" className="nav-item">
+                <Link href="/contacts" className={`nav-item ${pathname === '/contacts' ? 'active' : ''}`}>
+                    {pathname === '/contacts' && (
+                        <motion.div
+                            layoutId="navPill"
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                backgroundColor: 'rgba(255, 31, 61, 0.08)',
+                                borderRadius: '12px',
+                                zIndex: -1
+                            }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                    )}
                     <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                     Contacts
                 </Link>
-                <Link href="/profile" className="nav-item">
+                <Link href="/profile" className={`nav-item ${pathname === '/profile' ? 'active' : ''}`}>
+                    {pathname === '/profile' && (
+                        <motion.div
+                            layoutId="navPill"
+                            style={{
+                                position: 'absolute',
+                                inset: 0,
+                                backgroundColor: 'rgba(255, 31, 61, 0.08)',
+                                borderRadius: '12px',
+                                zIndex: -1
+                            }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                    )}
                     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
                     Profile
                 </Link>
