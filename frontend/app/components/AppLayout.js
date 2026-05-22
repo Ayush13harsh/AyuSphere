@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { warmUpBackend } from '../lib/api';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import GlowCursor from './GlowCursor';
 
 export default function AppLayout({ children, title = 'AyuSphere' }) {
     const { logout } = useAuth();
@@ -14,9 +13,16 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
 
     useEffect(() => {
         const saved = localStorage.getItem('healthsos-theme');
-        if (saved === 'dark') {
+        // Default to dark theme on initial load if no choice exists
+        if (saved === 'dark' || saved === null) {
             setDarkMode(true);
             document.documentElement.setAttribute('data-theme', 'dark');
+            if (saved === null) {
+                localStorage.setItem('healthsos-theme', 'dark');
+            }
+        } else {
+            setDarkMode(false);
+            document.documentElement.removeAttribute('data-theme');
         }
         // Wake up the Render backend immediately so it's ready when user navigates
         warmUpBackend();
@@ -36,21 +42,10 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
 
     return (
         <>
-            <GlowCursor />
             <motion.header
                 initial={{ y: -80, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 200, damping: 22, delay: 0.3 }}
-                style={{
-                    background: 'rgba(4, 4, 15, 0.75)',
-                    backdropFilter: 'blur(28px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.07)',
-                    boxShadow: '0 1px 0 rgba(255, 31, 61, 0.1)',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 100
-                }}
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {pathname !== '/dashboard' && pathname !== '/' && (
@@ -87,7 +82,7 @@ export default function AppLayout({ children, title = 'AyuSphere' }) {
                             boxShadow: '0 0 6px #10b981',
                             animation: 'statusPulse 2s ease-in-out infinite'
                         }} />
-                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.7rem', fontWeight: 600 }}>Live</span>
+                        <span style={{ color: 'var(--text-light)', opacity: 0.8, fontSize: '0.7rem', fontWeight: 600 }}>Live</span>
                     </div>
 
                     <button onClick={toggleDarkMode} className="theme-toggle" title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>

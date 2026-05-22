@@ -13,29 +13,7 @@ const AmbulanceTracker = dynamic(() => import('../components/AmbulanceTracker'),
     loading: () => <div className="tracker-overlay"><div className="tracker-modal" style={{ textAlign: 'center', padding: '3rem' }}><h3>Connecting to Dispatch...</h3></div></div>
 });
 
-const BackgroundScene = dynamic(() => import('../components/BackgroundScene'), {
-    ssr: false,
-    loading: () => null
-});
-
-const SOSSphere = dynamic(() => import('../components/SOSSphere'), {
-    ssr: false,
-    loading: () => (
-        <div style={{
-            width: 320,
-            height: 320,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, #cc001a, #04040f)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 60px rgba(255,31,61,0.4)',
-            animation: 'sosPulse 1.5s ease-in-out infinite'
-        }}>
-            <span style={{ color: 'white', fontWeight: 900, fontSize: '1.5rem', letterSpacing: '0.15em' }}>SOS</span>
-        </div>
-    )
-});
+// 3D scene dynamic imports removed in favor of clean CSS styling
 
 export default function Dashboard() {
     const [alert, setAlert] = useState(null);
@@ -308,9 +286,10 @@ export default function Dashboard() {
 
             <NotificationBanner />
 
-            {/* Fixed 3D Background */}
-            <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-                <BackgroundScene />
+            {/* Dynamic CSS Backdrop Glows */}
+            <div className="backdrop-glow-container">
+                <div className="backdrop-glow backdrop-glow-red" />
+                <div className="backdrop-glow backdrop-glow-blue" />
             </div>
 
             {/* Scrollable UI Layer */}
@@ -374,12 +353,20 @@ export default function Dashboard() {
                     flexDirection: 'column'
                 }}
             >
-                <SOSSphere
-                    isListening={isListening}
-                    isLoading={loading}
-                    onClick={handleSOS}
-                    disabled={loading}
-                />
+                <div className="sos-sphere-container">
+                    <button
+                        onClick={handleSOS}
+                        disabled={loading}
+                        className={`sos-button ${loading ? 'pulse-active' : ''} ${isListening ? 'listening-glow' : ''}`}
+                        aria-label="Emergency SOS Button"
+                    >
+                        {loading ? (
+                            <span className="loading-spinner" style={{ width: '36px', height: '36px', borderWidth: '4px' }}></span>
+                        ) : (
+                            'SOS'
+                        )}
+                    </button>
+                </div>
 
                 <motion.div
                     initial={{ opacity: 0 }}
@@ -425,7 +412,7 @@ export default function Dashboard() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.4 }}
             >
-                <h3 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'rgba(255,255,255,0.4)', marginBottom: '0.85rem', fontWeight: 800 }}>
+                <h3 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--text-light)', opacity: 0.8, marginBottom: '0.85rem', fontWeight: 800 }}>
                     🚨 Emergency Actions
                 </h3>
                 <div className="emergency-grid" style={{ gap: '1rem' }}>
@@ -498,7 +485,7 @@ export default function Dashboard() {
 
             {/* ── Smart Tools ── */}
             <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'rgba(255,255,255,0.4)', marginBottom: '0.85rem', fontWeight: 800 }}>
+                <h3 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--text-light)', opacity: 0.8, marginBottom: '0.85rem', fontWeight: 800 }}>
                     🩺 Smart Tools
                 </h3>
                 <motion.div
@@ -567,7 +554,7 @@ export default function Dashboard() {
 
             {/* ── Health Hub ── */}
             <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'rgba(255,255,255,0.4)', marginBottom: '0.85rem', fontWeight: 800 }}>
+                <h3 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--text-light)', opacity: 0.8, marginBottom: '0.85rem', fontWeight: 800 }}>
                     💊 Health Hub
                 </h3>
                 <motion.div
