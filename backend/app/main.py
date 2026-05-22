@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.core.limiter import limiter
 from app.api import auth, contacts, profile, sos, hospitals, symptoms, chatbot
 import logging
+import re
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,15 +41,28 @@ app.add_middleware(SlowAPIMiddleware)
 # Combine default origins with any extra origins from CORS_ORIGINS env var
 _default_origins = [
     "https://ayusphere.vercel.app",
+    "https://ayu-sphere-jade.vercel.app",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
 _extra = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()] if settings.CORS_ORIGINS else []
 _allowed_origins = list(set(_default_origins + _extra))
 
+VERCEL_ORIGIN_REGEX = re.compile(r"^https://.*\.vercel\.app$")
+
+def is_origin_allowed(origin: str) -> bool:
+    if not origin:
+        return False
+    if origin in _allowed_origins:
+        return True
+    if VERCEL_ORIGIN_REGEX.match(origin):
+        return True
+    return False
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
+    allow_origin_regex=r"^https://.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,12 +72,12 @@ app.add_middleware(
 def safe_cors_json_response(status_code: int, content: dict, request: Request):
     """
     Creates a JSONResponse with explicit CORS headers.
-    Only reflects back origins that are in the allowed list.
+    Only reflects back origins that are in the allowed list or match the Vercel pattern.
     """
     origin = request.headers.get("origin", "")
     
     headers = {}
-    if origin and origin in _allowed_origins:
+    if origin and is_origin_allowed(origin):
         headers = {
             "Access-Control-Allow-Origin": origin,
             "Access-Control-Allow-Credentials": "true",
