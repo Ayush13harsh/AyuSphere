@@ -82,11 +82,11 @@ class MapsService:
                 data = response.json()
 
                 hospitals = []
-                for result in data.get("results", [])[:3]:
+                for result in data.get("results", [])[:15]:
                     hospitals.append({
                         "name": result.get("name"),
-                        "address": result.get("vicinity"),
-                        "phone": "+91804000000",
+                        "address": result.get("vicinity") or "Address on Map",
+                        "phone": result.get("formatted_phone_number", "Emergency 108 / 112"),
                         "rating": result.get("rating", "N/A"),
                         "distance": "2.5 km",
                         "lat": result["geometry"]["location"]["lat"],
@@ -158,7 +158,7 @@ class MapsService:
 
                     tag_parts = [tags.get("addr:housenumber"), tags.get("addr:street"), tags.get("addr:city")]
                     address = ", ".join(filter(None, tag_parts))
-                    phone = tags.get("phone", tags.get("contact:phone", "N/A"))
+                    phone = tags.get("phone", tags.get("contact:phone", "Emergency 108 / 112"))
                     dist = haversine(lat, lng, elem_lat, elem_lng)
 
                     hospitals.append({
@@ -172,7 +172,8 @@ class MapsService:
                     })
 
                 hospitals.sort(key=lambda x: float(x["distance"].split()[0]))
-                hospitals = hospitals[:3]
+                hospitals = hospitals[:15]
+
 
                 # ── Reverse-geocode any hospital missing an address ───
                 needs_geocode = [h for h in hospitals if not h["address"]]

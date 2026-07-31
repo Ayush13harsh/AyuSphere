@@ -87,36 +87,45 @@ export default function SymptomChecker() {
             setStep(3); // Result Step
 
             // 2. Fetch User Location and Find Specialists
-            if (navigator.geolocation) {
-                setLoadingMessage('Finding nearby specialists...');
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    setUserLocation({ lat, lng });
-
-                    try {
-                        const hospData = await fetchAPI(`/hospitals?lat=${lat}&lng=${lng}&specialty=${analysis.specialty_keyword}`);
-                        setHospitals(hospData);
-                    } catch (err) {
-                        console.error("Failed to load hospitals", err);
-                    } finally {
-                        setLoading(false);
-                        setLoadingMessage('');
-                    }
-                }, (geolocationError) => {
-                    console.error("Geolocation error:", geolocationError);
-                    setError('Unable to retrieve location. Please ensure location services are enabled in your browser/OS to find nearby specialists.');
+            const loadSpecialistsForCoords = async (lat, lng) => {
+                setUserLocation({ lat, lng });
+                try {
+                    const hospData = await fetchAPI(`/hospitals?lat=${lat}&lng=${lng}&specialty=${analysis.specialty_keyword}`);
+                    setHospitals(hospData);
+                } catch (err) {
+                    console.error("Failed to load hospitals", err);
+                } finally {
                     setLoading(false);
                     setLoadingMessage('');
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                });
+                }
+            };
+
+            if (navigator.geolocation) {
+                setLoadingMessage('Finding nearby specialists...');
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        await loadSpecialistsForCoords(position.coords.latitude, position.coords.longitude);
+                    },
+                    async (geoErr) => {
+                        console.warn("GPS failed, using IP fallback:", geoErr.message);
+                        try {
+                            const ipResp = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+                            if (ipResp.ok) {
+                                const ipData = await ipResp.json();
+                                if (ipData.latitude && ipData.longitude) {
+                                    await loadSpecialistsForCoords(parseFloat(ipData.latitude), parseFloat(ipData.longitude));
+                                    return;
+                                }
+                            }
+                        } catch (e) {}
+                        await loadSpecialistsForCoords(28.6139, 77.2090);
+                    },
+                    { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 }
+                );
             } else {
-                setLoading(false);
-                setLoadingMessage('');
+                await loadSpecialistsForCoords(28.6139, 77.2090);
             }
+
 
         } catch (err) {
             if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);

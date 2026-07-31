@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
+from typing import List, Optional
 from app.api.auth import get_current_user
 from app.core.limiter import limiter
 from app.core.config import settings
@@ -9,8 +10,13 @@ import os
 
 router = APIRouter()
 
+class ChatMessage(BaseModel):
+    role: str
+    text: str
+
 class ChatRequest(BaseModel):
     message: str
+    history: Optional[List[ChatMessage]] = []
 
 class ChatResponse(BaseModel):
     response: str
@@ -52,8 +58,8 @@ GEMINI_MODELS = [
     "gemini-pro"
 ]
 
-async def call_gemini_llm(user_message: str) -> str:
-    """Call the Google Gemini REST API with automatic model cascading."""
+async def call_gemini_llm(user_message: str, history: Optional[List[ChatMessage]] = None) -> str:
+    """Call the Google Gemini REST API with multi-turn conversation support and cascading models."""
     api_key = settings.GEMINI_API_KEY
     if not api_key:
         return "[Error] I am currently running offline. Please add your GEMINI_API_KEY to your backend environment variables."
@@ -71,13 +77,25 @@ async def call_gemini_llm(user_message: str) -> str:
         "Keep your overall responses highly robust, professional, and do not abruptly stop talking. "
     )
 
+    contents = []
+    # Build prior history context
+    if history:
+        for msg in history[-6:]:  # Keep recent 6 turns to avoid context blowout
+            role = "user" if msg.role == "user" else "model"
+            contents.append({
+                "role": role,
+                "parts": [{"text": msg.text}]
+            })
+
+    # Append current message with system instructions
+    user_part_text = f"System Guidelines: {system_prompt}\n\nPatient says: {user_message}" if not contents else user_message
+    contents.append({
+        "role": "user",
+        "parts": [{"text": user_part_text}]
+    })
+
     payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": f"System Guidelines: {system_prompt}\n\nPatient says: {user_message}"}]
-            }
-        ],
+        "contents": contents,
         "generationConfig": {
             "temperature": 0.7,
             "maxOutputTokens": 4096,
@@ -92,7 +110,6 @@ async def call_gemini_llm(user_message: str) -> str:
                 resp = await client.post(url, json=payload, timeout=20.0)
                 if resp.status_code == 200:
                     data = resp.json()
-                    # Successfully generated a response
                     try:
                         return data["candidates"][0]["content"]["parts"][0]["text"]
                     except (KeyError, IndexError):
@@ -101,14 +118,13 @@ async def call_gemini_llm(user_message: str) -> str:
                 elif resp.status_code == 429:
                     err_msg = resp.json().get("error", {}).get("message", "Quota Exceeded")
                     last_error = f"[Error] 429 Quota Exceeded on {model}: {err_msg}"
-                    continue # Try the next fallback model!
+                    continue
                     
                 elif resp.status_code == 404:
                     last_error = f"[Error] 404 Model {model} not found for this API Key."
-                    continue # Try the next fallback model!
+                    continue
                     
                 elif resp.status_code in (400, 403):
-                    # For permissions or severe syntax errors, fail immediately.
                     try:
                         err_msg = resp.json().get("error", {}).get("message", resp.text)
                         return f"[Error] API Access Denied ({resp.status_code}): {err_msg}"
@@ -125,7 +141,6 @@ async def call_gemini_llm(user_message: str) -> str:
                 last_error = f"[Error] Unknown connection error reaching {model}: {str(e)}"
                 continue
                 
-        # If we exhausted the entire waterfall without returning success or a hard 403
         return last_error or "[Error] All Gemini fallback models failed due to routing or quota limits."
 
 
@@ -134,10 +149,9 @@ async def call_gemini_llm(user_message: str) -> str:
 async def process_chat(request: Request, chat_request: ChatRequest, current_user: dict = Depends(get_current_user)):
     text = chat_request.message
 
-    # Call Gemini LLM directly, getting back text or error reason
-    llm_response = await call_gemini_llm(text)
+    # Call Gemini LLM with history support
+    llm_response = await call_gemini_llm(text, chat_request.history)
     
-    # Extract agentic structural actions
     action = None
     if "[ACTION:FIND_DOCTOR]" in llm_response:
         action = "FIND_DOCTOR"
@@ -146,7 +160,6 @@ async def process_chat(request: Request, chat_request: ChatRequest, current_user
         action = "CALL_AMBULANCE"
         llm_response = llm_response.replace("[ACTION:CALL_AMBULANCE]", "").strip()
     
-    # Still attach a specialist chip to help the user navigate
     specialist, keyword = infer_specialist(text)
     
     return ChatResponse(
@@ -155,3 +168,4 @@ async def process_chat(request: Request, chat_request: ChatRequest, current_user
         specialty_keyword=keyword if not llm_response.startswith("[Error]") else None,
         action=action
     )
+

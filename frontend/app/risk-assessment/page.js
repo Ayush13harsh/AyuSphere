@@ -2,10 +2,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import AppLayout from '../components/AppLayout';
+import { fetchAPI, getNetworkErrorMessage } from '../lib/api';
 
 export default function RiskAssessment() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [result, setResult] = useState(null);
 
     // Form Data
@@ -44,85 +46,36 @@ export default function RiskAssessment() {
         });
     };
 
-    const calculateRisk = () => {
+    const calculateRisk = async () => {
         setLoading(true);
+        setError('');
 
-        setTimeout(() => {
-            // Very simplified mock heuristic for demonstration purposes
-            let riskScore = 0;
-            let factors = [];
+        try {
+            const payload = {
+                age: formData.age ? parseInt(formData.age) : null,
+                weight: formData.weight ? parseFloat(formData.weight) : null,
+                height: formData.height ? parseFloat(formData.height) : null,
+                systolic: formData.systolic ? parseInt(formData.systolic) : null,
+                diastolic: formData.diastolic ? parseInt(formData.diastolic) : null,
+                symptoms: formData.symptoms,
+                smoke: formData.smoke,
+                diabetes: formData.diabetes
+            };
 
-            // BMI Calculation (Weight in kg / Height in m^2)
-            let bmi = null;
-            if (formData.weight && formData.height) {
-                const heightM = parseInt(formData.height) / 100;
-                bmi = parseInt(formData.weight) / (heightM * heightM);
-                if (bmi > 30) {
-                    riskScore += 2;
-                    factors.push("High BMI (Obesity risk category)");
-                }
-            }
-
-            // Blood Pressure
-            const sys = parseInt(formData.systolic) || 120;
-            const dia = parseInt(formData.diastolic) || 80;
-            if (sys > 180 || dia > 120) {
-                riskScore += 5; // Hypertensive crisis
-                factors.push("Hypertensive Crisis — Seek Immediate Medical Attention");
-            } else if (sys > 140 || dia > 90) {
-                riskScore += 3;
-                factors.push("Elevated Blood Pressure (Hypertension risk)");
-            }
-
-            // Age & Lifestyle
-            if (parseInt(formData.age) > 60) {
-                riskScore += 1;
-                factors.push("Age > 60");
-            }
-            if (formData.smoke) {
-                riskScore += 2;
-                factors.push("Smoking");
-            }
-            if (formData.diabetes) {
-                riskScore += 2;
-                factors.push("Pre-existing Diabetes");
-            }
-
-            // Severe Symptoms Weighting
-            if (formData.symptoms.includes("Chest Pain") || formData.symptoms.includes("Shortness of Breath")) {
-                riskScore += 4;
-                factors.push("Critical Symptoms Reported (Chest/Breathing)");
-            }
-            if (formData.symptoms.includes("Severe Headache") || formData.symptoms.includes("Dizziness/Fainting")) {
-                riskScore += 2;
-                factors.push("Neurological Symptoms Reported");
-            }
-
-            // Categorize Risk
-            let category = "Low Risk";
-            let color = "#10B981"; // Green
-            let percentage = Math.min(Math.max((riskScore / 15) * 100, 10), 100);
-
-            if (riskScore >= 7) {
-                category = "High Risk";
-                color = "#EF4444"; // Red
-            } else if (riskScore >= 4) {
-                category = "Moderate Risk";
-                color = "#F59E0B"; // Amber
-            }
-
-            setResult({
-                score: percentage,
-                category,
-                color,
-                factors: factors.length > 0 ? factors : ["No major risk factors detected based on input."],
-                bmi: bmi ? bmi.toFixed(1) : null
+            const data = await fetchAPI('/symptoms/risk-assess', {
+                method: 'POST',
+                body: JSON.stringify(payload)
             });
 
+            setResult(data);
             setStep(2);
+        } catch (err) {
+            setError(getNetworkErrorMessage(err));
+        } finally {
             setLoading(false);
-        }, 1500); // Simulate processing time
+        }
     };
+
 
     return (
         <AppLayout title="Risk Analysis">
@@ -133,6 +86,8 @@ export default function RiskAssessment() {
                 </div>
                 <Link href="/dashboard" className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>Back</Link>
             </div>
+
+            {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
 
             {step === 1 && (
                 <div className="card" style={{ animation: 'fade-in 0.4s ease' }}>
@@ -227,6 +182,15 @@ export default function RiskAssessment() {
 
                         <h2 style={{ fontSize: '1.4rem', marginTop: '1rem', color: result.color, marginBottom: 0 }}>{result.category}</h2>
                     </div>
+
+                    {/* AI Synthesis Summary if returned */}
+                    {result.ai_analysis && (
+                        <div className="card" style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', padding: '1rem 1.2rem', marginBottom: '0.8rem' }}>
+                            <h3 style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.9, marginBottom: '6px' }}>✨ AI Clinical Evaluation</h3>
+                            <p style={{ fontSize: '0.92rem', lineHeight: '1.5', margin: 0, opacity: 0.95 }}>{result.ai_analysis}</p>
+                        </div>
+                    )}
+
 
                     {/* Breakdown Cards */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>

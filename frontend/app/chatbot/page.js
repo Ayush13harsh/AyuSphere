@@ -34,10 +34,12 @@ export default function Chatbot() {
         setLoading(true);
 
         try {
+            const historyPayload = messages.map(m => ({ role: m.role, text: m.text }));
             const data = await fetchAPI('/chatbot/message', {
                 method: 'POST',
-                body: JSON.stringify({ message: userMsg })
+                body: JSON.stringify({ message: userMsg, history: historyPayload })
             });
+
             
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
