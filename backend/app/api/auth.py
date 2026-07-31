@@ -71,8 +71,9 @@ async def verify_signup(request: Request, data: VerifySignupRequest):
         otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "signup"})
         logger.info(f"[verify-signup] Step 1 - OTP record found: {otp_record is not None}")
         
-        is_valid_otp = (str(data.otp) == "123456") or (
-            otp_record and secrets.compare_digest(otp_record.get("otp_hash", ""), hashlib.sha256(str(data.otp).encode()).hexdigest())
+        is_valid_otp = otp_record and secrets.compare_digest(
+            otp_record.get("otp_hash", ""), 
+            hashlib.sha256(str(data.otp).encode()).hexdigest()
         )
 
         if not is_valid_otp:
@@ -87,14 +88,13 @@ async def verify_signup(request: Request, data: VerifySignupRequest):
             raise HTTPException(status_code=400, detail="Invalid OTP")
             
         # Step 2: Check expiry
-        if otp_record and str(data.otp) != "123456":
-            expires_at = otp_record.get("expires_at")
-            if expires_at is not None:
-                if expires_at.tzinfo is None:
-                    expires_at = expires_at.replace(tzinfo=timezone.utc)
-                if expires_at < datetime.now(timezone.utc):
-                    logger.warning(f"[verify-signup] Expired OTP for: {data.email}")
-                    raise HTTPException(status_code=400, detail="OTP expired")
+        expires_at = otp_record.get("expires_at")
+        if expires_at is not None:
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if expires_at < datetime.now(timezone.utc):
+                logger.warning(f"[verify-signup] Expired OTP for: {data.email}")
+                raise HTTPException(status_code=400, detail="OTP expired")
         logger.info(f"[verify-signup] Step 2 - OTP valid")
             
         # Step 3: Check existing user
@@ -124,8 +124,7 @@ async def verify_signup(request: Request, data: VerifySignupRequest):
             raise HTTPException(status_code=500, detail="Account creation failed. Please try again.")
         
         # Step 6: Clean up OTP
-        if otp_record:
-            await db.db.users_otp.delete_one({"_id": otp_record["_id"]})
+        await db.db.users_otp.delete_one({"_id": otp_record["_id"]})
         logger.info(f"[verify-signup] Step 6 - OTP record deleted")
         
         # Step 7: Create tokens
@@ -159,12 +158,15 @@ async def forgot_password(request: Request, data: ForgotPasswordRequest):
     )
         
     email_sent = await send_otp_email(data.email, otp, "reset_password")
-    logger.info(f"Password reset OTP processed for email: {data.email}")
-
-    if not settings.BREVO_API_KEY or "your_" in settings.BREVO_API_KEY.lower() or "simulate" in settings.BREVO_API_KEY.lower():
-        return {"message": "An OTP code has been generated. (Demo Mode: Enter code 123456 to verify)"}
-    
-    return {"message": "If an account exists, an OTP has been sent to your email."}
+    if not email_sent:
+        logger.error(f"Failed to send password reset OTP email to: {data.email}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to send OTP email. Please ensure your BREVO_API_KEY is configured on the backend server."
+        )
+        
+    logger.info(f"Password reset OTP sent via email to: {data.email}")
+    return {"message": "An OTP verification code has been sent to your email address."}
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
 @limiter.limit("5/minute")
@@ -172,8 +174,9 @@ async def reset_password(request: Request, data: ResetPasswordRequest):
     logger.info(f"Reset-password attempt for email: {data.email}")
     otp_record = await db.db.users_otp.find_one({"email": data.email, "purpose": "reset_password"})
     
-    is_valid_otp = (str(data.otp) == "123456") or (
-        otp_record and secrets.compare_digest(otp_record.get("otp_hash", ""), hashlib.sha256(str(data.otp).encode()).hexdigest())
+    is_valid_otp = otp_record and secrets.compare_digest(
+        otp_record.get("otp_hash", ""), 
+        hashlib.sha256(str(data.otp).encode()).hexdigest()
     )
 
     if not is_valid_otp:
@@ -188,18 +191,17 @@ async def reset_password(request: Request, data: ResetPasswordRequest):
         logger.warning(f"Invalid OTP for reset-password: {data.email}")
         raise HTTPException(status_code=400, detail="Invalid OTP")
         
-    if otp_record and str(data.otp) != "123456":
-        expires_at = otp_record.get("expires_at")
-        if expires_at is not None:
-            if expires_at.tzinfo is None:
-                expires_at = expires_at.replace(tzinfo=timezone.utc)
-            if expires_at < datetime.now(timezone.utc):
-                logger.warning(f"Expired OTP for reset-password: {data.email}")
-                raise HTTPException(status_code=400, detail="OTP expired")
+    expires_at = otp_record.get("expires_at")
+    if expires_at is not None:
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at < datetime.now(timezone.utc):
+            logger.warning(f"Expired OTP for reset-password: {data.email}")
+            raise HTTPException(status_code=400, detail="OTP expired")
         
     hashed_password = get_password_hash(data.new_password)
     
-    # Upsert user record so password reset always succeeds and allows sign in
+    # Upsert user record so password reset always updates the user's password
     await db.db.users.update_one(
         {"email": data.email},
         {"$set": {"email": data.email, "hashed_password": hashed_password}},
@@ -208,7 +210,8 @@ async def reset_password(request: Request, data: ResetPasswordRequest):
     
     await db.db.users_otp.delete_many({"email": data.email, "purpose": "reset_password"})
     logger.info(f"Password successfully reset for: {data.email}")
-    return {"message": "Password updated successfully. You may now sign in."}
+    return {"message": "Password updated successfully. You may now sign in with your new password."}
+
 
 
 @router.post("/login", response_model=Token)
