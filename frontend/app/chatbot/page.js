@@ -5,6 +5,61 @@ import Link from 'next/link';
 import AppLayout from '../components/AppLayout';
 import { fetchAPI, getNetworkErrorMessage } from '../lib/api';
 
+function formatMarkdown(text) {
+    if (!text) return null;
+
+    const parseInline = (str) => {
+        const parts = str.split(/(\*\*.*?\*\*)/g);
+        return parts.map((part, i) => {
+            if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+                return <strong key={i} style={{ fontWeight: 700 }}>{part.slice(2, -2)}</strong>;
+            }
+            return part;
+        });
+    };
+
+    const lines = text.split('\n');
+    const elements = [];
+
+    lines.forEach((line, index) => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        // Bullet point item
+        if (trimmed.startsWith('* ') || trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+            const content = trimmed.substring(2).trim();
+            elements.push(
+                <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '0.35rem', paddingLeft: '4px' }}>
+                    <span style={{ color: '#6366f1', fontWeight: 800, lineHeight: 1.5 }}>•</span>
+                    <div style={{ flex: 1, lineHeight: 1.5 }}>{parseInline(content)}</div>
+                </div>
+            );
+            return;
+        }
+
+        // Numbered list item (e.g. 1. Item)
+        const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+        if (numMatch) {
+            elements.push(
+                <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '0.45rem', marginTop: '0.2rem' }}>
+                    <span style={{ color: '#6366f1', fontWeight: 700, minWidth: '18px', lineHeight: 1.5 }}>{numMatch[1]}.</span>
+                    <div style={{ flex: 1, lineHeight: 1.5 }}>{parseInline(numMatch[2])}</div>
+                </div>
+            );
+            return;
+        }
+
+        // Regular line
+        elements.push(
+            <div key={index} style={{ marginBottom: '0.4rem', lineHeight: 1.5 }}>
+                {parseInline(line)}
+            </div>
+        );
+    });
+
+    return elements;
+}
+
 export default function Chatbot() {
     const [messages, setMessages] = useState([
         { role: 'assistant', text: "Hello! I'm Dr. AyuSphere. Describe your symptoms and I'll help guide you to the right care.", specialist: null, keyword: null }
@@ -132,8 +187,9 @@ export default function Chatbot() {
                                     : '0 3px 10px rgba(0,0,0,0.04)',
                                 backdropFilter: msg.role === 'assistant' ? 'blur(10px)' : 'none'
                             }}>
-                                {msg.text}
+                                {formatMarkdown(msg.text)}
                             </div>
+
                             
                             {msg.role === 'assistant' && msg.specialist && (
                                 <Link 
